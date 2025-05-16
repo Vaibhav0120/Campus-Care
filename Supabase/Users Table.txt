@@ -1,0 +1,22 @@
+-- Enable UUID extension
+create extension if not exists "uuid-ossp";
+
+-- Create users table (extends Supabase auth.users)
+create table public.users (
+  id uuid references auth.users on delete cascade not null primary key,
+  email text not null,
+  role text not null default 'student' check (role in ('student', 'staff')),
+  created_at timestamp with time zone default now() not null,
+  
+  constraint users_email_key unique (email)
+);
+
+-- Set up Row Level Security (RLS)
+alter table public.users enable row level security;
+
+-- Create policies
+create policy "Users can view their own data" on users
+  for select using (auth.uid() = id);
+
+create policy "Staff can view all users" on users
+  for select using (auth.uid() in (select id from users where role = 'staff'));

@@ -1,0 +1,26 @@
+-- Create items table
+create table public.items (
+  id uuid default uuid_generate_v4() primary key,
+  name text not null,
+  description text,
+  price decimal not null,
+  image_url text,
+  available_today boolean default true,
+  created_at timestamp with time zone default now() not null
+);
+
+-- Set up Row Level Security
+alter table public.items enable row level security;
+
+-- Create policies
+create policy "Anyone can view items" on items
+  for select using (true);
+
+create policy "Staff can insert items" on items
+  for insert with check (auth.uid() in (select id from users where role = 'staff'));
+
+create policy "Staff can update items" on items
+  for update using (auth.uid() in (select id from users where role = 'staff'));
+
+create policy "Staff can delete items" on items
+  for delete using (auth.uid() in (select id from users where role = 'staff'));

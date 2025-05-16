@@ -1,0 +1,155 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:campus_care/providers/auth_provider.dart';
+import 'package:campus_care/screens/home_screen.dart';
+import 'package:campus_care/screens/signup_screen.dart';
+import 'package:campus_care/screens/staff/staff_dashboard.dart';
+import 'package:campus_care/utils/validators.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({Key? key}) : super(key: key);
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (_formKey.currentState!.validate()) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      
+      final success = await authProvider.signIn(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+      
+      if (success && mounted) {
+        if (authProvider.isStaff) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const StaffDashboard()),
+          );
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Login'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 32),
+              const Text(
+                'Welcome Back',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Login to continue',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email),
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: Validators.validateEmail,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _passwordController,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: const Icon(Icons.lock),
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
+                ),
+                obscureText: _obscurePassword,
+                validator: Validators.validatePassword,
+              ),
+              const SizedBox(height: 24),
+              if (authProvider.error != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    authProvider.error!,
+                    style: const TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ElevatedButton(
+                onPressed: authProvider.isLoading ? null : _login,
+                child: authProvider.isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('Login'),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SignupScreen()),
+                  );
+                },
+                child: const Text('Don\'t have an account? Sign Up'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

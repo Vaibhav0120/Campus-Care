@@ -1,0 +1,26 @@
+-- Create orders table
+create table public.orders (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references public.users not null,
+  items jsonb not null,
+  total_price decimal not null,
+  status text not null default 'pending' check (status in ('pending', 'completed')),
+  payment_method text not null default 'cash' check (payment_method in ('cash', 'upi')),
+  created_at timestamp with time zone default now() not null
+);
+
+-- Set up Row Level Security
+alter table public.orders enable row level security;
+
+-- Create policies
+create policy "Users can view their own orders" on orders
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert their own orders" on orders
+  for insert with check (auth.uid() = user_id);
+
+create policy "Staff can view all orders" on orders
+  for select using (auth.uid() in (select id from users where role = 'staff'));
+
+create policy "Staff can update orders" on orders
+  for update using (auth.uid() in (select id from users where role = 'staff'));
