@@ -235,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               children: [
                 Text(
-                  'Found ${filteredItems.length} results for "${_searchQuery}"',
+                  'Found ${filteredItems.length} results for "$_searchQuery"',
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontWeight: FontWeight.w500,

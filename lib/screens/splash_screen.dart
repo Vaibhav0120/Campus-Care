@@ -188,7 +188,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 // Loading indicator
                 FadeTransition(
                   opacity: _fadeAnimation,
-                  child: Column(
+                  child: const Column(
                     children: [
                       SizedBox(
                         width: 40,
@@ -198,8 +198,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           strokeWidth: 3,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
+                      SizedBox(height: 16),
+                      Text(
                         'Loading...',
                         style: TextStyle(
                           color: Colors.white,
