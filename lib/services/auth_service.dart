@@ -3,14 +3,13 @@ import 'package:campus_care/config/supabase_config.dart';
 import 'package:campus_care/models/user_model.dart';
 
 class AuthService {
-  final _supabase = SupabaseConfig.supabase;
-
   Future<UserModel?> getCurrentUser() async {
     try {
-      final user = _supabase.auth.currentUser;
+      final supabase = SupabaseConfig.supabaseClient;
+      final user = supabase.auth.currentUser;
       if (user == null) return null;
 
-      final response = await _supabase
+      final response = await supabase
           .from('users')
           .select()
           .eq('id', user.id)
@@ -25,21 +24,22 @@ class AuthService {
 
   Future<UserModel?> signUp(String email, String password) async {
     try {
-      final response = await _supabase.auth.signUp(
+      final supabase = SupabaseConfig.supabaseClient;
+      final response = await supabase.auth.signUp(
         email: email,
         password: password,
       );
 
       if (response.user != null) {
         // Create user record in users table
-        await _supabase.from('users').insert({
+        await supabase.from('users').insert({
           'id': response.user!.id,
           'email': email,
           'role': 'student', // Default role
         });
 
         // Fetch the created user
-        final userResponse = await _supabase
+        final userResponse = await supabase
             .from('users')
             .select()
             .eq('id', response.user!.id)
@@ -56,13 +56,14 @@ class AuthService {
 
   Future<UserModel?> signIn(String email, String password) async {
     try {
-      final response = await _supabase.auth.signInWithPassword(
+      final supabase = SupabaseConfig.supabaseClient;
+      final response = await supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
 
       if (response.user != null) {
-        final userResponse = await _supabase
+        final userResponse = await supabase
             .from('users')
             .select()
             .eq('id', response.user!.id)
@@ -78,6 +79,7 @@ class AuthService {
   }
 
   Future<void> signOut() async {
-    await _supabase.auth.signOut();
+    final supabase = SupabaseConfig.supabaseClient;
+    await supabase.auth.signOut();
   }
 }

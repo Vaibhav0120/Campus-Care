@@ -7,11 +7,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ItemService {
-  final _supabase = SupabaseConfig.supabase;
-
   Future<List<ItemModel>> getItems({bool onlyAvailable = true}) async {
     try {
-      final query = _supabase.from('items').select();
+      final supabase = SupabaseConfig.supabaseClient;
+      final query = supabase.from('items').select();
       
       if (onlyAvailable) {
         query.eq('available_today', true);
@@ -28,7 +27,8 @@ class ItemService {
 
   Future<ItemModel?> getItem(String id) async {
     try {
-      final response = await _supabase
+      final supabase = SupabaseConfig.supabaseClient;
+      final response = await supabase
           .from('items')
           .select()
           .eq('id', id)
@@ -43,7 +43,8 @@ class ItemService {
 
   Future<ItemModel?> createItem(ItemModel item) async {
     try {
-      final response = await _supabase.from('items').insert({
+      final supabase = SupabaseConfig.supabaseClient;
+      final response = await supabase.from('items').insert({
         'id': item.id,
         'name': item.name,
         'description': item.description,
@@ -65,7 +66,8 @@ class ItemService {
 
   Future<ItemModel?> updateItem(ItemModel item) async {
     try {
-      final response = await _supabase
+      final supabase = SupabaseConfig.supabaseClient;
+      final response = await supabase
           .from('items')
           .update({
             'name': item.name,
@@ -89,7 +91,8 @@ class ItemService {
 
   Future<bool> toggleItemAvailability(String id, bool available) async {
     try {
-      await _supabase
+      final supabase = SupabaseConfig.supabaseClient;
+      await supabase
           .from('items')
           .update({'available_today': available})
           .eq('id', id);
@@ -103,6 +106,7 @@ class ItemService {
 
   Future<String?> uploadImage(String filePath, String fileName) async {
     try {
+      final supabase = SupabaseConfig.supabaseClient;
       debugPrint('Starting image upload process...');
       Uint8List bytes;
       
@@ -138,7 +142,7 @@ class ItemService {
       
       // Upload to Supabase storage
       debugPrint('Uploading to Supabase storage bucket: item-images/$fileName');
-      final String path = await _supabase
+      final String path = await supabase
           .storage
           .from('item-images')
           .uploadBinary(
@@ -153,7 +157,7 @@ class ItemService {
       debugPrint('Upload successful, path: $path');
       
       // Get the public URL
-      final String publicUrl = _supabase
+      final String publicUrl = supabase
           .storage
           .from('item-images')
           .getPublicUrl(fileName);

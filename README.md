@@ -2,6 +2,7 @@
 
 Here is a **Flutter mobile app** called **Campus Care**, using **Supabase** as the backend. The project has **role-based access (Student / Cafeteria Staff)**, real-time database operations, cart & order features, and payment using **Razorpay UPI**. Supabase credentials are to be managed using a `.env` file.
 
+[Watch Live](https://campus-care-seven.vercel.app/)
 ---
 
 ### 📁 Required Features and Roles

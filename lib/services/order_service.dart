@@ -6,12 +6,12 @@ import 'package:campus_care/models/order_model.dart';
 import 'package:campus_care/services/cart_service.dart';
 
 class OrderService {
-  final _supabase = SupabaseConfig.supabase;
   final _cartService = CartService();
 
   Future<List<OrderModel>> getOrders(String userId, {bool isStaff = false}) async {
     try {
-      final query = _supabase.from('orders').select();
+      final supabase = SupabaseConfig.supabaseClient;
+      final query = supabase.from('orders').select();
       
       if (!isStaff) {
         // Regular users can only see their own orders
@@ -29,7 +29,8 @@ class OrderService {
 
   Future<List<OrderModel>> getPendingOrders() async {
     try {
-      final response = await _supabase
+      final supabase = SupabaseConfig.supabaseClient;
+      final response = await supabase
           .from('orders')
           .select()
           .eq('status', 'pending')
@@ -44,7 +45,8 @@ class OrderService {
 
   Future<OrderModel?> getOrder(String orderId) async {
     try {
-      final response = await _supabase
+      final supabase = SupabaseConfig.supabaseClient;
+      final response = await supabase
           .from('orders')
           .select()
           .eq('id', orderId)
@@ -64,6 +66,7 @@ class OrderService {
     String paymentMethod,
   ) async {
     try {
+      final supabase = SupabaseConfig.supabaseClient;
       // Convert cart items to order items
       List<Map<String, dynamic>> orderItems = cartItems.map((cartItem) => {
         'item_id': cartItem.itemId,
@@ -72,7 +75,7 @@ class OrderService {
         'quantity': cartItem.quantity,
       }).toList();
       
-      final response = await _supabase.from('orders').insert({
+      final response = await supabase.from('orders').insert({
         'user_id': userId,
         'items': jsonEncode(orderItems),
         'total_price': totalPrice,
@@ -96,7 +99,8 @@ class OrderService {
 
   Future<bool> markOrderAsCompleted(String orderId) async {
     try {
-      await _supabase
+      final supabase = SupabaseConfig.supabaseClient;
+      await supabase
           .from('orders')
           .update({'status': 'completed'})
           .eq('id', orderId);

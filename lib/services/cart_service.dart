@@ -4,12 +4,12 @@ import 'package:campus_care/models/cart_item.dart';
 import 'package:campus_care/services/item_service.dart';
 
 class CartService {
-  final _supabase = SupabaseConfig.supabase;
   final _itemService = ItemService();
 
   Future<List<CartItem>> getCartItems(String userId) async {
     try {
-      final response = await _supabase
+      final supabase = SupabaseConfig.supabaseClient;
+      final response = await supabase
           .from('cart')
           .select()
           .eq('user_id', userId);
@@ -32,8 +32,9 @@ class CartService {
 
   Future<CartItem?> addToCart(String userId, String itemId, {int quantity = 1}) async {
     try {
+      final supabase = SupabaseConfig.supabaseClient;
       // Check if item already exists in cart
-      final existingItem = await _supabase
+      final existingItem = await supabase
           .from('cart')
           .select()
           .eq('user_id', userId)
@@ -43,7 +44,7 @@ class CartService {
       if (existingItem != null) {
         // Update quantity
         final newQuantity = existingItem['quantity'] + quantity;
-        final response = await _supabase
+        final response = await supabase
             .from('cart')
             .update({'quantity': newQuantity})
             .eq('id', existingItem['id'])
@@ -57,7 +58,7 @@ class CartService {
         }
       } else {
         // Add new item to cart
-        final response = await _supabase
+        final response = await supabase
             .from('cart')
             .insert({
               'user_id': userId,
@@ -83,7 +84,8 @@ class CartService {
 
   Future<CartItem?> updateCartItemQuantity(String cartItemId, int quantity) async {
     try {
-      final response = await _supabase
+      final supabase = SupabaseConfig.supabaseClient;
+      final response = await supabase
           .from('cart')
           .update({'quantity': quantity})
           .eq('id', cartItemId)
@@ -105,7 +107,8 @@ class CartService {
 
   Future<bool> removeFromCart(String cartItemId) async {
     try {
-      await _supabase
+      final supabase = SupabaseConfig.supabaseClient;
+      await supabase
           .from('cart')
           .delete()
           .eq('id', cartItemId);
@@ -119,7 +122,8 @@ class CartService {
 
   Future<bool> clearCart(String userId) async {
     try {
-      await _supabase
+      final supabase = SupabaseConfig.supabaseClient;
+      await supabase
           .from('cart')
           .delete()
           .eq('user_id', userId);
