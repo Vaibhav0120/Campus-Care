@@ -57,9 +57,10 @@ class MyApp extends StatelessWidget {
               vertical: 16,
             ),
           ),
-          cardTheme: CardTheme(
+          // Updated to use the correct type for newer Flutter versions
+          cardTheme: const CardThemeData(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
             elevation: 2,
           ),
