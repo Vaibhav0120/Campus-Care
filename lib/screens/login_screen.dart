@@ -5,6 +5,7 @@ import 'package:campus_care/screens/home_screen.dart';
 import 'package:campus_care/screens/signup_screen.dart';
 import 'package:campus_care/screens/staff/staff_dashboard.dart';
 import 'package:campus_care/utils/validators.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -55,16 +56,29 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       );
       
       if (success && mounted) {
-        if (authProvider.isStaff) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const StaffDashboard()),
-          );
-        } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-          );
-        }
+        _navigateAfterLogin(authProvider);
       }
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    await authProvider.signInWithGoogle();
+    
+    // Note: The actual navigation will happen after the OAuth redirect
+    // is handled and the session is restored
+  }
+
+  void _navigateAfterLogin(AuthProvider authProvider) {
+    if (authProvider.isStaff) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const StaffDashboard()),
+      );
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
     }
   }
 
@@ -73,6 +87,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     final authProvider = Provider.of<AuthProvider>(context);
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width > 600;
+    final theme = Theme.of(context);
     
     return Scaffold(
       body: SafeArea(
@@ -91,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     Icon(
                       Icons.restaurant_menu,
                       size: 80,
-                      color: Theme.of(context).primaryColor,
+                      color: theme.primaryColor,
                     ),
                     const SizedBox(height: 24),
                     // App Name
@@ -100,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColor,
+                        color: theme.primaryColor,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -133,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).primaryColor,
+                                  color: theme.primaryColor,
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -249,6 +264,51 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
+                              ),
+                              const SizedBox(height: 16),
+                              // OR Divider
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Divider(
+                                      color: Colors.grey[300],
+                                      thickness: 1,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    child: Text(
+                                      'OR',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Divider(
+                                      color: Colors.grey[300],
+                                      thickness: 1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              // Google Login Button
+                              OutlinedButton.icon(
+                                onPressed: authProvider.isLoading ? null : _loginWithGoogle,
+                                icon: const FaIcon(
+                                  FontAwesomeIcons.google,
+                                  size: 18,
+                                ),
+                                label: const Text('Continue with Google'),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  side: BorderSide(color: Colors.grey[300]!),
+                                ),
                               ),
                               const SizedBox(height: 16),
                               // Sign Up Link

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:campus_care/models/user_model.dart';
 import 'package:campus_care/config/supabase_config.dart';
+// ignore: unused_import
+import 'package:path/path.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthProvider with ChangeNotifier {
   UserModel? _user;
@@ -48,7 +51,7 @@ class AuthProvider with ChangeNotifier {
     return false;
   }
 
-  // Sign in user
+  // Sign in user with email and password
   Future<bool> signIn(String email, String password) async {
     _isLoading = true;
     _error = null;
@@ -88,7 +91,40 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // Sign up user
+  // Sign in with Google
+  Future<bool> signInWithGoogle() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final supabase = SupabaseConfig.supabaseClient;
+      
+      final success = await supabase.auth.signInWithOAuth(
+        Provider.google,
+        redirectTo: Uri.base.origin,
+      );
+
+      // signInWithOAuth returns a bool indicating if the redirect was initiated
+      if (success) {
+        // We'll handle the actual user data in the checkAndRestoreSession method
+        // after the OAuth flow completes
+        return true;
+      }
+
+      _error = 'Failed to initiate Google sign in';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Sign up user with email and password
   Future<bool> signUp(String email, String password) async {
     _isLoading = true;
     _error = null;

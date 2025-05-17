@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:campus_care/models/item_model.dart';
-import 'package:campus_care/providers/auth_provider.dart';
 import 'package:campus_care/providers/cart_provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:campus_care/providers/auth_provider.dart';
 
 class ItemCard extends StatelessWidget {
   final ItemModel item;
-  
+
   const ItemCard({
     Key? key,
     required this.item,
@@ -16,109 +14,140 @@ class ItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+    final theme = Theme.of(context);
     final cartProvider = Provider.of<CartProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context);
     
     return Card(
-      clipBehavior: Clip.antiAlias,
-      elevation: 2,
+      elevation: 3,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image
-          SizedBox(
-            height: 120,
-            width: double.infinity,
-            child: item.imageUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: item.imageUrl!,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                    errorWidget: (context, url, error) => const Center(
-                      child: Icon(Icons.image_not_supported),
-                    ),
-                  )
-                : Image.asset(
-                    'assets/images/placeholder_food.png',
-                    fit: BoxFit.cover,
+          // Item Image
+          Stack(
+            children: [
+              AspectRatio(
+                aspectRatio: 1.2,
+                child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                    ? Image.network(
+                        item.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: Center(
+                              child: Icon(
+                                Icons.image_not_supported,
+                                color: Colors.grey[400],
+                                size: 40,
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : Container(
+                        color: Colors.grey[200],
+                        child: Center(
+                          child: Icon(
+                            Icons.fastfood,
+                            color: theme.primaryColor.withOpacity(0.5),
+                            size: 40,
+                          ),
+                        ),
+                      ),
+              ),
+              // Price tag
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
                   ),
+                  decoration: BoxDecoration(
+                    color: theme.primaryColor,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    '₹${item.price.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                if (item.description != null)
+          // Item Details
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Item Name
                   Text(
-                    item.description!,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
+                    item.name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '₹${item.price.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.green,
+                  const SizedBox(height: 4),
+                  // Item Description
+                  if (item.description != null && item.description!.isNotEmpty)
+                    Expanded(
+                      child: Text(
+                        item.description!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    ElevatedButton(
+                  
+                  // Add to Cart Button
+                  const Spacer(),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
                       onPressed: cartProvider.isLoading
                           ? null
-                          : () async {
-                              if (authProvider.isAuthenticated) {
-                                final success = await cartProvider.addToCart(
-                                  authProvider.user!.id,
-                                  item,
-                                );
-                                
-                                if (success) {
-                                  Fluttertoast.showToast(
-                                    msg: "Added to cart",
-                                    toastLength: Toast.LENGTH_SHORT,
-                                  );
-                                } else {
-                                  Fluttertoast.showToast(
-                                    msg: "Failed to add to cart",
-                                    toastLength: Toast.LENGTH_SHORT,
-                                  );
-                                }
-                              }
+                          : () {
+                              cartProvider.addToCart(
+                                authProvider.user!.id,
+                                item,
+                              );
                             },
+                      icon: const Icon(Icons.add_shopping_cart, size: 16),
+                      label: const Text('Add to Cart'),
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        minimumSize: const Size(0, 32),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      child: const Text('Add'),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],
