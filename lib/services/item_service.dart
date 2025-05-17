@@ -1,10 +1,10 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:campus_care/config/supabase_config.dart';
 import 'package:campus_care/models/item_model.dart';
-import 'package:path/path.dart' as path;
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ItemService {
   final _supabase = SupabaseConfig.supabase;
@@ -44,11 +44,13 @@ class ItemService {
   Future<ItemModel?> createItem(ItemModel item) async {
     try {
       final response = await _supabase.from('items').insert({
+        'id': item.id,
         'name': item.name,
         'description': item.description,
         'price': item.price,
         'image_url': item.imageUrl,
         'available_today': item.availableToday,
+        'created_at': item.createdAt.toIso8601String(),
       }).select();
       
       if (response.isNotEmpty) {
@@ -101,49 +103,64 @@ class ItemService {
 
   Future<String?> uploadImage(String filePath, String fileName) async {
     try {
+      debugPrint('Starting image upload process...');
       Uint8List bytes;
       
       if (kIsWeb) {
+        debugPrint('Uploading from web platform');
         // For web, we need to handle differently
         if (filePath.startsWith('http')) {
           // If it's a URL, fetch the image
           final response = await http.get(Uri.parse(filePath));
           bytes = response.bodyBytes;
+          debugPrint('Downloaded image from URL: $filePath');
         } else {
-          // If it's a local file path on web, we need to read it as bytes
-          // This is a simplified approach - in a real app, you'd use a proper file picker for web
-          final file = File(filePath);
+          // For web, XFile.path is not a file path but a blob URL or object URL
+          // We need to read the file as bytes directly
+          final file = XFile(filePath);
           bytes = await file.readAsBytes();
+          debugPrint('Read image bytes from XFile');
         }
-        
-        final response = await _supabase
-            .storage
-            .from('item-images')
-            .uploadBinary(fileName, bytes);
-            
-        final imageUrl = _supabase
-            .storage
-            .from('item-images')
-            .getPublicUrl(response);
-        
-        return imageUrl;
       } else {
+        debugPrint('Uploading from mobile platform');
         // For mobile platforms
         final file = File(filePath);
         bytes = await file.readAsBytes();
-        
-        final response = await _supabase
-            .storage
-            .from('item-images')
-            .uploadBinary(fileName, bytes);
-        
-        final imageUrl = _supabase
-            .storage
-            .from('item-images')
-            .getPublicUrl(response);
-        
-        return imageUrl;
+        debugPrint('Read image bytes from File: $filePath');
       }
+      
+      debugPrint('Image bytes length: ${bytes.length}');
+      
+      if (bytes.isEmpty) {
+        debugPrint('Error: Image bytes are empty');
+        return null;
+      }
+      
+      // Upload to Supabase storage
+      debugPrint('Uploading to Supabase storage bucket: item-images/$fileName');
+      final String path = await _supabase
+          .storage
+          .from('item-images')
+          .uploadBinary(
+            fileName,
+            bytes,
+            fileOptions: const FileOptions(
+              cacheControl: '3600',
+              upsert: true,
+            ),
+          );
+      
+      debugPrint('Upload successful, path: $path');
+      
+      // Get the public URL
+      final String publicUrl = _supabase
+          .storage
+          .from('item-images')
+          .getPublicUrl(fileName);
+      
+      debugPrint('Generated public URL: $publicUrl');
+      
+      return publicUrl;
     } catch (e) {
       debugPrint('Error uploading image: $e');
       return null;
