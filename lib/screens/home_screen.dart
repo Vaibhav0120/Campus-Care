@@ -11,8 +11,6 @@ import 'package:campus_care/screens/cart_screen.dart';
 import 'package:campus_care/widgets/recommendation_carousel.dart';
 import 'package:campus_care/models/item_model.dart';
 import 'package:campus_care/screens/order_history_screen.dart';
-import 'package:provider/provider.dart';
-import 'package:campus_care/providers/order_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);

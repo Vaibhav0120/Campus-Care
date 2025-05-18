@@ -216,10 +216,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
                 );
               }
             },
-            child: const Text('Yes, Cancel'),
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,
             ),
+            child: const Text('Yes, Cancel'),
           ),
         ],
       ),
