@@ -46,33 +46,29 @@ class _StaffDashboardState extends State<StaffDashboard>
     try {
       final supabase = SupabaseConfig.supabaseClient;
 
+      // Create a channel for orders table
       _ordersSubscription = supabase
-          .channel('public:orders')
-          .on(
-            RealtimeListenTypes.postgresChanges,
-            ChannelFilter(
-              event: 'INSERT',
-              schema: 'public',
-              table: 'orders',
-            ),
-            (payload, [ref]) {
-              _handleNewOrder(payload);
+          .channel('orders')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.insert,
+            schema: 'public',
+            table: 'orders',
+            callback: (payload) {
+              _handleNewOrder(payload.newRecord);
             },
           )
-          .on(
-            RealtimeListenTypes.postgresChanges,
-            ChannelFilter(
-              event: 'UPDATE',
-              schema: 'public',
-              table: 'orders',
-            ),
-            (payload, [ref]) {
-              _handleOrderUpdate(payload);
+          .onPostgresChanges(
+            event: PostgresChangeEvent.update,
+            schema: 'public',
+            table: 'orders',
+            callback: (payload) {
+              _handleOrderUpdate({
+                'new': payload.newRecord,
+                'old': payload.oldRecord,
+              });
             },
-          );
-      
-      // Subscribe to the channel
-      _ordersSubscription?.subscribe();
+          )
+          .subscribe();
 
       debugPrint('Subscribed to orders channel');
     } catch (e) {
@@ -91,9 +87,8 @@ class _StaffDashboardState extends State<StaffDashboard>
 
   void _handleNewOrder(Map<String, dynamic> payload) {
     try {
-      final newOrderData = payload['new'];
-      if (newOrderData != null && newOrderData['status'] == 'pending') {
-        final newOrder = OrderModel.fromJson(newOrderData);
+      if (payload['status'] == 'pending') {
+        final newOrder = OrderModel.fromJson(payload);
 
         setState(() {
           // Add the new order to the list if it's not already there
@@ -189,7 +184,6 @@ class _StaffDashboardState extends State<StaffDashboard>
   @override
   Widget build(BuildContext context) {
     final authProvider = provider_pkg.Provider.of<AuthProvider>(context);
-    final theme = Theme.of(context);
     const primaryColor = Color(0xFFFEC62B); // Match user home screen color
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 900;
@@ -202,8 +196,8 @@ class _StaffDashboardState extends State<StaffDashboard>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                primaryColor.withOpacity(0.8),
-                primaryColor.withOpacity(0.6),
+                primaryColor.withValues(alpha: 204), // 0.8 opacity
+                primaryColor.withValues(alpha: 153), // 0.6 opacity
               ],
             ),
           ),
@@ -246,7 +240,8 @@ class _StaffDashboardState extends State<StaffDashboard>
                     ElevatedButton(
                       onPressed: () {
                         Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          MaterialPageRoute(
+                              builder: (_) => const LoginScreen()),
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -314,17 +309,19 @@ class _StaffDashboardState extends State<StaffDashboard>
           child: Column(
             children: [
               const SizedBox(height: 16),
-              _buildNavItem(0, 'Pending Orders', Icons.pending_actions, primaryColor),
+              _buildNavItem(
+                  0, 'Pending Orders', Icons.pending_actions, primaryColor),
               _buildNavItem(1, 'Order History', Icons.history, primaryColor),
               _buildNavItem(2, 'Analytics', Icons.analytics, primaryColor),
-              _buildNavItem(3, 'Manage Menu', Icons.restaurant_menu, primaryColor),
+              _buildNavItem(
+                  3, 'Manage Menu', Icons.restaurant_menu, primaryColor),
               const Spacer(),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: primaryColor.withOpacity(0.1),
+                    color: primaryColor.withValues(alpha: 26), // 0.1 opacity
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -350,14 +347,14 @@ class _StaffDashboardState extends State<StaffDashboard>
             ],
           ),
         ),
-        
+
         // Vertical divider
         VerticalDivider(
           width: 1,
           thickness: 1,
           color: Colors.grey[300],
         ),
-        
+
         // Content area
         Expanded(
           child: TabBarView(
@@ -380,37 +377,51 @@ class _StaffDashboardState extends State<StaffDashboard>
       children: [
         Container(
           color: primaryColor,
-          child: TabBar(
-            controller: _tabController,
-            indicatorColor: Colors.black87,
-            labelColor: Colors.black87,
-            unselectedLabelColor: Colors.black54,
-            labelStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
+          child: Theme(
+            // Override the theme specifically for this TabBar
+            data: ThemeData(
+              tabBarTheme: const TabBarTheme(
+                labelColor:
+                    Colors.black, // Explicitly set selected tab text to black
+                unselectedLabelColor: Colors.black54,
+              ),
             ),
-            unselectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.normal,
-              fontSize: 14,
+            child: TabBar(
+              controller: _tabController,
+              indicatorColor: Colors.black, // Black indicator for visibility
+              labelColor:
+                  Colors.black, // Black text for selected tab (more explicit)
+              unselectedLabelColor:
+                  Colors.black54, // Dark text for unselected tab
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: Colors.black, // Explicitly set text color in style too
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.normal,
+                fontSize: 14,
+                color: Colors.black54,
+              ),
+              tabs: const [
+                Tab(
+                  icon: Icon(Icons.pending_actions),
+                  text: 'Pending',
+                ),
+                Tab(
+                  icon: Icon(Icons.history),
+                  text: 'History',
+                ),
+                Tab(
+                  icon: Icon(Icons.analytics),
+                  text: 'Analytics',
+                ),
+                Tab(
+                  icon: Icon(Icons.restaurant_menu),
+                  text: 'Menu',
+                ),
+              ],
             ),
-            tabs: const [
-              Tab(
-                icon: Icon(Icons.pending_actions),
-                text: 'Pending',
-              ),
-              Tab(
-                icon: Icon(Icons.history),
-                text: 'History',
-              ),
-              Tab(
-                icon: Icon(Icons.analytics),
-                text: 'Analytics',
-              ),
-              Tab(
-                icon: Icon(Icons.restaurant_menu),
-                text: 'Menu',
-              ),
-            ],
           ),
         ),
         Expanded(
@@ -428,9 +439,10 @@ class _StaffDashboardState extends State<StaffDashboard>
     );
   }
 
-  Widget _buildNavItem(int index, String title, IconData icon, Color primaryColor) {
+  Widget _buildNavItem(
+      int index, String title, IconData icon, Color primaryColor) {
     final isSelected = _tabController.index == index;
-    
+
     return InkWell(
       onTap: () {
         setState(() {
@@ -440,7 +452,9 @@ class _StaffDashboardState extends State<StaffDashboard>
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? primaryColor.withOpacity(0.1) : Colors.transparent,
+          color: isSelected
+              ? primaryColor.withValues(alpha: 26)
+              : Colors.transparent, // 0.1 opacity
           border: Border(
             left: BorderSide(
               color: isSelected ? primaryColor : Colors.transparent,
@@ -452,13 +466,17 @@ class _StaffDashboardState extends State<StaffDashboard>
           children: [
             Icon(
               icon,
-              color: isSelected ? primaryColor : Colors.grey[600],
+              color: isSelected
+                  ? Colors.black
+                  : Colors.grey[600], // Changed to black when selected
             ),
             const SizedBox(width: 16),
             Text(
               title,
               style: TextStyle(
-                color: isSelected ? primaryColor : Colors.grey[800],
+                color: isSelected
+                    ? Colors.black
+                    : Colors.grey[800], // Changed to black when selected
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -472,7 +490,7 @@ class _StaffDashboardState extends State<StaffDashboard>
     const primaryColor = Color(0xFFFEC62B); // Match user home screen color
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 900;
-    
+
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -565,8 +583,6 @@ class _StaffDashboardState extends State<StaffDashboard>
   }
 
   Widget _buildLargeScreenPendingOrders() {
-    const primaryColor = Color(0xFFFEC62B);
-    
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -581,49 +597,39 @@ class _StaffDashboardState extends State<StaffDashboard>
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Orders grid
           Expanded(
             child: GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 1.5,
+                childAspectRatio: 1.8, // Adjusted for better fit
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
               ),
               itemCount: _pendingOrders.length,
               itemBuilder: (context, index) {
                 final order = _pendingOrders[index];
-                return Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: OrderTile(
-                          order: order,
-                          isStaff: true,
+                // Add ClipRRect to ensure no overflow
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: ElevatedButton.icon(
-                          onPressed: () => _markOrderAsCompleted(order.id),
-                          icon: const Icon(Icons.check_circle),
-                          label: const Text('Mark as Completed'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size(double.infinity, 48),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
+                    child: OrderTile(
+                      order: order,
+                      isStaff: true,
+                      onMarkCompleted: () => _markOrderAsCompleted(order.id),
+                    ),
                   ),
                 );
               },
@@ -640,35 +646,26 @@ class _StaffDashboardState extends State<StaffDashboard>
       itemCount: _pendingOrders.length,
       itemBuilder: (context, index) {
         final order = _pendingOrders[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 16),
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            children: [
-              OrderTile(
-                order: order,
-                isStaff: true,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: ElevatedButton.icon(
-                  onPressed: () => _markOrderAsCompleted(order.id),
-                  icon: const Icon(Icons.check_circle),
-                  label: const Text('Mark as Completed'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 48),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+        // Add ClipRRect to ensure no overflow
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 ),
-              ),
-            ],
+              ],
+            ),
+            child: OrderTile(
+              order: order,
+              isStaff: true,
+              onMarkCompleted: () => _markOrderAsCompleted(order.id),
+            ),
           ),
         );
       },

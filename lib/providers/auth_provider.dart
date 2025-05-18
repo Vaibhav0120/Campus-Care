@@ -3,6 +3,7 @@ import 'package:campus_care/models/user_model.dart';
 import 'package:campus_care/config/supabase_config.dart';
 // ignore: unused_import
 import 'package:path/path.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthProvider with ChangeNotifier {
@@ -100,8 +101,9 @@ class AuthProvider with ChangeNotifier {
     try {
       final supabase = SupabaseConfig.supabaseClient;
       
+      // Updated for Supabase Flutter 2.x
       final success = await supabase.auth.signInWithOAuth(
-        Provider.google,
+        OAuthProvider.google,
         redirectTo: Uri.base.origin,
       );
 

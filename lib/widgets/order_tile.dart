@@ -17,10 +17,11 @@ class OrderTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          mainAxisSize: MainAxisSize.min, // Ensures column takes minimum space
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -70,12 +71,10 @@ class OrderTile extends StatelessWidget {
               ),
             ),
             const Divider(),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: order.items.length,
-              itemBuilder: (context, index) {
-                final item = order.items[index];
+            // Use Column instead of ListView for better layout control
+            Column(
+              mainAxisSize: MainAxisSize.min, // Ensures column takes minimum space
+              children: order.items.map((item) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
@@ -97,7 +96,7 @@ class OrderTile extends StatelessWidget {
                     ],
                   ),
                 );
-              },
+              }).toList(),
             ),
             const Divider(),
             Row(
@@ -121,14 +120,26 @@ class OrderTile extends StatelessWidget {
               ],
             ),
             if (isStaff && order.isPending)
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(top: 16, bottom: 0), // No bottom margin
                 child: ElevatedButton(
                   onPressed: onMarkCompleted,
                   style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 40),
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 50), // Fixed height
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8), // Restored rounded corners
+                    ),
                   ),
-                  child: const Text('Mark as Completed'),
+                  child: const Text(
+                    'Mark as Completed',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
           ],
