@@ -380,7 +380,7 @@ class _StaffDashboardState extends State<StaffDashboard>
           child: Theme(
             // Override the theme specifically for this TabBar
             data: ThemeData(
-              tabBarTheme: const TabBarTheme(
+              tabBarTheme: const TabBarThemeData(
                 labelColor:
                     Colors.black, // Explicitly set selected tab text to black
                 unselectedLabelColor: Colors.black54,

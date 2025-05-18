@@ -1,8 +1,0 @@
-// This script forces all Kotlin JVM targets to a compatible version
-allprojects {
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-        kotlinOptions {
-            jvmTarget = "11"
-        }
-    }
-}
