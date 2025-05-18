@@ -105,7 +105,7 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                                 ),
                               ),
                               child: isUploading
-                                  ? Center(
+                                  ? const Center(
                                       child: CircularProgressIndicator(
                                         valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
                                       ),
@@ -515,7 +515,7 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
     }
 
     if (itemProvider.isLoading) {
-      return Center(
+      return const Center(
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
         ),

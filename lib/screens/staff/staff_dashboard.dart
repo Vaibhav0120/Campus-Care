@@ -219,7 +219,7 @@ class _StaffDashboardState extends State<StaffDashboard>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.admin_panel_settings,
                       size: 80,
                       color: primaryColor,
@@ -474,7 +474,7 @@ class _StaffDashboardState extends State<StaffDashboard>
     final isLargeScreen = size.width > 900;
     
     if (_isLoading) {
-      return Center(
+      return const Center(
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
         ),

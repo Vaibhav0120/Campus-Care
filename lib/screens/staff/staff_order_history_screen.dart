@@ -403,7 +403,7 @@ class _StaffOrderHistoryScreenState extends State<StaffOrderHistoryScreen> {
           // Orders list
           Expanded(
             child: _isLoading
-                ? Center(
+                ? const Center(
                     child: CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
                     ),

@@ -132,19 +132,81 @@ class _HomeScreenState extends State<HomeScreen>
     final itemProvider = Provider.of<ItemProvider>(context);
     final cartProvider = Provider.of<CartProvider>(context);
     final size = MediaQuery.of(context).size;
-    final isDesktop = size.width > 900;
+
+    // Responsive breakpoints
+    final isSmallMobile = size.width < 360;
+    final isMobile = size.width < 600;
+    final isTablet = size.width >= 600 && size.width < 900;
+    final isDesktop = size.width >= 900;
+
+    // Determine grid columns based on screen size
+    int gridColumns;
+    if (isDesktop) {
+      gridColumns =
+          size.width > 1400 ? 6 : 5; // Extra large screens get 6 columns
+    } else if (isTablet) {
+      gridColumns = size.width > 750 ? 4 : 3; // Larger tablets get 4 columns
+    } else if (isMobile) {
+      gridColumns = 2; // Standard mobile gets 2 columns
+    } else {
+      gridColumns = 1; // Very small devices get 1 column
+    }
+
+    // Adjust aspect ratio based on screen size
+    double cardAspectRatio;
+    if (isDesktop) {
+      cardAspectRatio = 0.75; // Taller cards on desktop
+    } else if (isTablet) {
+      cardAspectRatio = 0.7; // Slightly taller cards on tablet
+    } else {
+      cardAspectRatio = 0.65; // Wider cards on mobile
+    }
+
+    // Adjust spacing based on screen size
+    double gridSpacing = isSmallMobile
+        ? 8
+        : isTablet
+            ? 16
+            : 12;
+    double contentPadding = isSmallMobile
+        ? 8
+        : isTablet
+            ? 24
+            : 16;
+
     final theme = Theme.of(context);
 
     return Scaffold(
       body: authProvider.isAuthenticated
           ? _buildAuthenticatedContent(
-              itemProvider, cartProvider, isDesktop, theme)
-          : _buildUnauthenticatedContent(theme),
+              itemProvider,
+              cartProvider,
+              isSmallMobile,
+              isMobile,
+              isTablet,
+              isDesktop,
+              gridColumns,
+              cardAspectRatio,
+              gridSpacing,
+              contentPadding,
+              theme)
+          : _buildUnauthenticatedContent(
+              isSmallMobile, isMobile, isTablet, isDesktop, theme),
     );
   }
 
-  Widget _buildAuthenticatedContent(ItemProvider itemProvider,
-      CartProvider cartProvider, bool isDesktop, ThemeData theme) {
+  Widget _buildAuthenticatedContent(
+      ItemProvider itemProvider,
+      CartProvider cartProvider,
+      bool isSmallMobile,
+      bool isMobile,
+      bool isTablet,
+      bool isDesktop,
+      int gridColumns,
+      double cardAspectRatio,
+      double gridSpacing,
+      double contentPadding,
+      ThemeData theme) {
     if (itemProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -156,20 +218,32 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             Icon(
               Icons.error_outline,
-              size: 64,
+              size: isSmallMobile ? 48 : 64,
               color: Colors.red[300],
             ),
             const SizedBox(height: 16),
-            Text(
-              'Error: ${itemProvider.error}',
-              style: TextStyle(color: Colors.red[700]),
-              textAlign: TextAlign.center,
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: contentPadding),
+              child: Text(
+                'Error: ${itemProvider.error}',
+                style: TextStyle(
+                  color: Colors.red[700],
+                  fontSize: isSmallMobile ? 14 : 16,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () => itemProvider.loadItems(),
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmallMobile ? 16 : 24,
+                  vertical: isSmallMobile ? 8 : 12,
+                ),
+              ),
             ),
           ],
         ),
@@ -193,14 +267,14 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             Icon(
               Icons.no_food,
-              size: 64,
+              size: isSmallMobile ? 48 : 64,
               color: Colors.grey[400],
             ),
             const SizedBox(height: 16),
             Text(
               'No items available',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: isSmallMobile ? 16 : 18,
                 color: Colors.grey[600],
                 fontWeight: FontWeight.bold,
               ),
@@ -209,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen>
             Text(
               'Check back later for menu updates',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: isSmallMobile ? 12 : 14,
                 color: Colors.grey[500],
               ),
             ),
@@ -223,13 +297,12 @@ class _HomeScreenState extends State<HomeScreen>
       headerSliverBuilder: (context, innerBoxIsScrolled) {
         return [
           // App Bar
-          // App Bar
           SliverAppBar(
-            title: const Text(
+            title: Text(
               'Campus Care',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 22,
+                fontSize: isSmallMobile ? 18 : 22,
               ),
             ),
             floating: true,
@@ -304,94 +377,120 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
             ],
           ),
-          
+
           // Search bar
           SliverPersistentHeader(
             pinned: true,
             delegate: _SliverSearchBarDelegate(
-              minHeight: 90,
-              maxHeight: 90,
+              minHeight: isSmallMobile ? 70 : 90,
+              maxHeight: isSmallMobile ? 70 : 90,
               child: Container(
-                color: theme.primaryColor.withOpacity(0.1),
-                padding: const EdgeInsets.all(16),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  height: 50,
+                color: theme
+                    .scaffoldBackgroundColor, // Changed to match scaffold background
+                child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(
-                        _searchQuery.isNotEmpty ? 16 : 12),
+                    color: theme.primaryColor.withOpacity(0.1),
                     boxShadow: [
                       BoxShadow(
-                        color: _searchQuery.isNotEmpty
-                            ? theme.primaryColor.withOpacity(0.2)
-                            : Colors.black.withOpacity(0.05),
-                        blurRadius: _searchQuery.isNotEmpty ? 8 : 4,
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
                     ],
-                    border: Border.all(
-                      color: _searchQuery.isNotEmpty
-                          ? theme.primaryColor.withOpacity(0.5)
-                          : Colors.grey[200]!,
-                      width: _searchQuery.isNotEmpty ? 1.5 : 1,
-                    ),
                   ),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search for food items...',
-                      prefixIcon: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        child: Icon(
-                          Icons.search,
+                  padding: EdgeInsets.all(isSmallMobile ? 12 : 16),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    height: isSmallMobile ? 40 : 50,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(
+                          _searchQuery.isNotEmpty ? 16 : 12),
+                      boxShadow: [
+                        BoxShadow(
                           color: _searchQuery.isNotEmpty
-                              ? theme.primaryColor
-                              : Colors.grey[400],
+                              ? theme.primaryColor.withOpacity(0.2)
+                              : Colors.black.withOpacity(0.05),
+                          blurRadius: _searchQuery.isNotEmpty ? 8 : 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: _searchQuery.isNotEmpty
+                            ? theme.primaryColor.withOpacity(0.5)
+                            : Colors.grey[200]!,
+                        width: _searchQuery.isNotEmpty ? 1.5 : 1,
+                      ),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search for food items...',
+                        hintStyle: TextStyle(
+                          fontSize: isSmallMobile ? 12 : 14,
+                        ),
+                        prefixIcon: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          child: Icon(
+                            Icons.search,
+                            size: isSmallMobile ? 18 : 24,
+                            color: _searchQuery.isNotEmpty
+                                ? theme.primaryColor
+                                : Colors.grey[400],
+                          ),
+                        ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? TweenAnimationBuilder<double>(
+                                tween: Tween<double>(begin: 0.0, end: 1.0),
+                                duration: const Duration(milliseconds: 300),
+                                builder: (context, value, child) {
+                                  return Opacity(
+                                    opacity: value,
+                                    child: IconButton(
+                                      icon: Icon(
+                                        Icons.clear,
+                                        size: isSmallMobile ? 18 : 24,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _searchController.clear();
+                                          _searchQuery = '';
+                                        });
+                                      },
+                                    ),
+                                  );
+                                },
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: isSmallMobile ? 0 : 4,
+                          horizontal: isSmallMobile ? 8 : 12,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
                         ),
                       ),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? TweenAnimationBuilder<double>(
-                              tween: Tween<double>(begin: 0.0, end: 1.0),
-                              duration: const Duration(milliseconds: 300),
-                              builder: (context, value, child) {
-                                return Opacity(
-                                  opacity: value,
-                                  child: IconButton(
-                                    icon: const Icon(Icons.clear),
-                                    onPressed: () {
-                                      setState(() {
-                                        _searchController.clear();
-                                        _searchQuery = '';
-                                      });
-                                    },
-                                  ),
-                                );
-                              },
-                            )
-                          : null,
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                      style: TextStyle(
+                        fontSize: isSmallMobile ? 12 : 14,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
-                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
+                      },
                     ),
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
                   ),
                 ),
               ),
@@ -406,7 +505,8 @@ class _HomeScreenState extends State<HomeScreen>
           // Recommendation carousel
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                  horizontal: contentPadding, vertical: isSmallMobile ? 4 : 8),
               child: RecommendationCarousel(
                 recommendedItems: _recommendedItems,
                 theme: theme,
@@ -418,8 +518,9 @@ class _HomeScreenState extends State<HomeScreen>
           if (_searchQuery.isNotEmpty)
             SliverToBoxAdapter(
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: EdgeInsets.symmetric(
+                    horizontal: contentPadding,
+                    vertical: isSmallMobile ? 4 : 8),
                 child: Row(
                   children: [
                     Text(
@@ -427,6 +528,7 @@ class _HomeScreenState extends State<HomeScreen>
                       style: TextStyle(
                         color: Colors.grey[600],
                         fontWeight: FontWeight.w500,
+                        fontSize: isSmallMobile ? 12 : 14,
                       ),
                     ),
                   ],
@@ -443,14 +545,14 @@ class _HomeScreenState extends State<HomeScreen>
                       children: [
                         Icon(
                           Icons.search_off,
-                          size: 64,
+                          size: isSmallMobile ? 48 : 64,
                           color: Colors.grey[400],
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'No items found',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: isSmallMobile ? 16 : 18,
                             color: Colors.grey[600],
                             fontWeight: FontWeight.bold,
                           ),
@@ -459,7 +561,7 @@ class _HomeScreenState extends State<HomeScreen>
                         Text(
                           'Try a different search term',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: isSmallMobile ? 12 : 14,
                             color: Colors.grey[500],
                           ),
                         ),
@@ -468,15 +570,13 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 )
               : SliverPadding(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(contentPadding),
                   sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount:
-                          isDesktop ? 5 : 2, // More columns on desktop
-                      childAspectRatio:
-                          0.7, // Consistent aspect ratio regardless of screen size
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
+                      crossAxisCount: gridColumns,
+                      childAspectRatio: cardAspectRatio,
+                      crossAxisSpacing: gridSpacing,
+                      mainAxisSpacing: gridSpacing,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -496,6 +596,10 @@ class _HomeScreenState extends State<HomeScreen>
                         return ItemCard(
                           item: item,
                           cartItem: cartItem,
+                          isSmallMobile: isSmallMobile,
+                          isMobile: isMobile,
+                          isTablet: isTablet,
+                          isDesktop: isDesktop,
                           onAddToCart: () {
                             if (cartItem.quantity > 0) {
                               // Item is already in cart, do nothing
@@ -531,7 +635,8 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildUnauthenticatedContent(ThemeData theme) {
+  Widget _buildUnauthenticatedContent(bool isSmallMobile, bool isMobile,
+      bool isTablet, bool isDesktop, ThemeData theme) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -545,41 +650,61 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       child: Center(
         child: Card(
-          margin: const EdgeInsets.all(24),
+          margin: EdgeInsets.all(isSmallMobile
+              ? 16
+              : isTablet
+                  ? 32
+                  : 24),
           elevation: 8,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(isSmallMobile
+                ? 16
+                : isTablet
+                    ? 32
+                    : 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   Icons.restaurant_menu,
-                  size: 80,
+                  size: isSmallMobile
+                      ? 60
+                      : isTablet
+                          ? 100
+                          : 80,
                   color: theme.primaryColor,
                 ),
-                const SizedBox(height: 24),
-                const Text(
+                SizedBox(height: isSmallMobile ? 16 : 24),
+                Text(
                   'Welcome to Campus Care',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: isSmallMobile
+                        ? 20
+                        : isTablet
+                            ? 28
+                            : 24,
                     fontWeight: FontWeight.bold,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: isSmallMobile ? 12 : 16),
+                Text(
                   'Order delicious food from your campus cafeteria',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: isSmallMobile
+                        ? 14
+                        : isTablet
+                            ? 18
+                            : 16,
                     color: Colors.grey,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: isSmallMobile ? 24 : 32),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).push(
@@ -587,18 +712,30 @@ class _HomeScreenState extends State<HomeScreen>
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isSmallMobile
+                          ? 24
+                          : isTablet
+                              ? 40
+                              : 32,
+                      vertical: isSmallMobile
+                          ? 12
+                          : isTablet
+                              ? 20
+                              : 16,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Login',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: isSmallMobile
+                          ? 14
+                          : isTablet
+                              ? 18
+                              : 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

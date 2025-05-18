@@ -244,7 +244,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final isLargeScreen = size.width > 900;
     
     if (_isLoading) {
-      return Center(
+      return const Center(
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
         ),

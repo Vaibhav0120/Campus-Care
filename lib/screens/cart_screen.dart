@@ -4,7 +4,6 @@ import 'package:campus_care/providers/auth_provider.dart';
 import 'package:campus_care/providers/cart_provider.dart';
 import 'package:campus_care/screens/place_order_screen.dart';
 import 'package:campus_care/widgets/cart_tile.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:lottie/lottie.dart';
 
 class CartScreen extends StatefulWidget {

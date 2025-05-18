@@ -4,7 +4,6 @@ import 'package:campus_care/providers/auth_provider.dart';
 import 'package:campus_care/screens/home_screen.dart';
 import 'package:campus_care/utils/validators.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
