@@ -155,8 +155,8 @@ class AuthProvider with ChangeNotifier {
       String? redirectUrl;
       
       if (kIsWeb) {
-        // For web, use the current origin with /login-callback path
-        redirectUrl = '${Uri.base.origin}/login-callback';
+        // For web, use your project's configured redirect URL (set in Supabase dashboard)
+        redirectUrl = 'https://campus-care-seven.vercel.app';
       } else {
         // For mobile, use a deep link scheme
         redirectUrl = 'com.campuscare://login-callback';
@@ -180,6 +180,27 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  // Handle auth state changes - call this in your app's initialization
+  void setupAuthListener() {
+    final supabase = SupabaseConfig.supabaseClient;
+    
+    supabase.auth.onAuthStateChange.listen((data) {
+      final AuthChangeEvent event = data.event;
+      final Session? session = data.session;
+      
+      debugPrint('Auth state changed: $event');
+      
+      if (event == AuthChangeEvent.signedIn && session != null) {
+        // When signed in, fetch the user data
+        checkAndRestoreSession();
+      } else if (event == AuthChangeEvent.signedOut) {
+        // When signed out, clear the user data
+        _user = null;
+        notifyListeners();
+      }
+    });
   }
 
   // Sign up user with email and password

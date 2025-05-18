@@ -7,6 +7,7 @@ import 'package:campus_care/providers/cart_provider.dart';
 import 'package:campus_care/providers/item_provider.dart';
 import 'package:campus_care/providers/order_provider.dart';
 import 'package:campus_care/screens/splash_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,14 +25,28 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final _authProvider = AuthProvider();
+
+  @override
+  void initState() {
+    super.initState();
+    // Set up auth listener
+    _authProvider.setupAuthListener();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider.value(value: _authProvider),
         ChangeNotifierProvider(create: (_) => ItemProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),

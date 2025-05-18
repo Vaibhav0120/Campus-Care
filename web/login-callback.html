@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authentication Callback</title>
+  <script>
+    // This script will handle the OAuth callback and redirect to the main app
+    window.onload = function() {
+      // Pass the entire URL with the auth code to the main app
+      window.location.href = '/#/auth-callback' + window.location.search;
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f9f9f9;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      background-color: white;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      margin: 20px auto;
+      border: 4px solid rgba(254, 198, 43, 0.3);
+      border-radius: 50%;
+      border-top-color: #FEC62B;
+      animation: spin 1s ease-in-out infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 style="color: #FEC62B;">Completing Authentication</h2>
+    <div class="spinner"></div>
+    <p>Please wait while we complete your sign-in...</p>
+  </div>
+</body>
+</html>
