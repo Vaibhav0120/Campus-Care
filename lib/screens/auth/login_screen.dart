@@ -6,6 +6,7 @@ import 'package:campus_care/screens/auth/signup_screen.dart';
 import 'package:campus_care/screens/staff/staff_dashboard.dart';
 import 'package:campus_care/utils/validators.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -51,6 +52,21 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
     
     _animationController.forward();
+    
+    // Check if we need to handle a redirect
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForRedirect();
+    });
+  }
+  
+  // Check if we need to handle a redirect from OAuth
+  Future<void> _checkForRedirect() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    // If we're already authenticated, navigate to the appropriate screen
+    if (authProvider.isAuthenticated) {
+      _navigateAfterLogin(authProvider);
+    }
   }
 
   @override
@@ -81,8 +97,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     
     await authProvider.signInWithGoogle();
     
-    // Note: The actual navigation will happen after the OAuth redirect
-    // is handled and the session is restored
+    // For web, the navigation will happen after the OAuth redirect
+    // For mobile, we'll check the session in the splash screen
+    if (!kIsWeb && authProvider.isAuthenticated && mounted) {
+      _navigateAfterLogin(authProvider);
+    }
   }
 
   void _navigateAfterLogin(AuthProvider authProvider) {
@@ -609,11 +628,20 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 height: buttonHeight,
                 child: OutlinedButton.icon(
                   onPressed: authProvider.isLoading ? null : _loginWithGoogle,
-                  icon: const FaIcon(
-                    FontAwesomeIcons.google,
-                    size: 18,
-                  ),
-                  label: const Text('Continue with Google'),
+                  icon: authProvider.isLoading 
+                      ? SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.grey[600],
+                          ),
+                        )
+                      : const FaIcon(
+                          FontAwesomeIcons.google,
+                          size: 18,
+                        ),
+                  label: Text(authProvider.isLoading ? 'Please wait...' : 'Continue with Google'),
                   style: OutlinedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),

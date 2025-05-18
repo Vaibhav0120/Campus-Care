@@ -1,7 +1,7 @@
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";
 
--- Create users table (extends Supabase auth.users)
+-- Create users table (extends Supabase auth.users)  TURN OF RLS FOR USER TABLE
 create table public.users (
   id uuid references auth.users on delete cascade not null primary key,
   email text not null,

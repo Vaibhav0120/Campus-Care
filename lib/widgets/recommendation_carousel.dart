@@ -353,7 +353,7 @@ class _RecommendationCarouselState extends State<RecommendationCarousel> {
                                                 children: [
                                                   // Price with enhanced typography
                                                   Container(
-                                                    margin: EdgeInsets.only(bottom: 4),
+                                                    margin: const EdgeInsets.only(bottom: 4),
                                                     padding: EdgeInsets.symmetric(
                                                       horizontal: isSmallMobile ? 6 : 8,
                                                       vertical: isSmallMobile ? 2 : 4,

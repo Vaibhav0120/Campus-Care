@@ -6,6 +6,8 @@ import 'package:campus_care/screens/auth/login_screen.dart';
 import 'package:campus_care/screens/staff/staff_dashboard.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:lottie/lottie.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:campus_care/config/supabase_config.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -18,6 +20,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  bool _isHandlingDeepLink = false;
   
   @override
   void initState() {
@@ -45,8 +48,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     
     _animationController.forward();
     
-    // Check authentication status
-    _checkAuthStatus();
+    // Check for deep links first, then check auth status
+    if (!kIsWeb) {
+      _handleDeepLinks();
+    } else {
+      _checkAuthStatus();
+    }
   }
   
   @override
@@ -55,7 +62,43 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     super.dispose();
   }
 
+  Future<void> _handleDeepLinks() async {
+    setState(() {
+      _isHandlingDeepLink = true;
+    });
+    
+    try {
+      // For Supabase Flutter 2.9.0, we need to check the current session
+      final supabase = SupabaseConfig.supabaseClient;
+      final session = supabase.auth.currentSession;
+      
+      if (session != null) {
+        debugPrint('Found existing session');
+      }
+      
+      // Listen for auth state changes
+      supabase.auth.onAuthStateChange.listen((data) {
+        final AuthChangeEvent event = data.event;
+        if (event == AuthChangeEvent.signedIn) {
+          debugPrint('Auth state changed: signed in');
+          _checkAuthStatus();
+        }
+      });
+    } catch (e) {
+      debugPrint('Error handling deep link: $e');
+    } finally {
+      setState(() {
+        _isHandlingDeepLink = false;
+      });
+      _checkAuthStatus();
+    }
+  }
+
   Future<void> _checkAuthStatus() async {
+    if (_isHandlingDeepLink) {
+      return; // Wait until deep link handling is complete
+    }
+    
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     
     // Try to restore session

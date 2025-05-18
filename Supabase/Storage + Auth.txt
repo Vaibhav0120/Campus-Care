@@ -1,0 +1,23 @@
+FOR GOOGLE AUTH
+
+Authentication -> URL CONFIGURATION
+Site URL	https://campus-care-seven.vercel.app/login-callback
+Redirect URLs	All of these:
+• https://campus-care-seven.vercel.app/
+• https://campus-care-seven.vercel.app/login-callback
+• http://localhost:3000/login-callback
+• https://xdchodqtxmeslemstndf.supabase.co/auth/v1/callback
+
+FOR STORAGE 
+
+Create Bucket "item-images"
+
+Create new Policy 
+Policy name "Only staff can upload"
+Target roles "Authenticated"
+FOR -> INSERT, UPDATE, DELETE, SELECT
+WITH CHECK expression -->
+
+((bucket_id = 'item-images'::text) AND (EXISTS ( SELECT 1
+   FROM users
+  WHERE ((users.id = auth.uid()) AND (users.role = 'staff'::text)))))
