@@ -8,7 +8,6 @@ import 'package:campus_care/screens/login_screen.dart';
 import 'package:campus_care/screens/staff/staff_dashboard.dart';
 import 'package:campus_care/widgets/item_card.dart';
 import 'package:campus_care/screens/cart_screen.dart';
-import 'package:campus_care/models/item_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -23,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   late AnimationController _recommendationController;
   late Animation<double> _recommendationAnimation;
   int _currentRecommendationIndex = 0;
-  List<String> _recommendations = [
+  final List<String> _recommendations = [
     'Today\'s Special',
     'Most Popular',
     'New Items',

@@ -220,20 +220,20 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  const Row(
                     children: [
                       Icon(
                         Icons.receipt_long,
-                        color: const Color(0xFFFEC62B),
+                        color: Color(0xFFFEC62B),
                         size: 24,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Text(
                         'Order Summary',
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFFFEC62B),
+                          color: Color(0xFFFEC62B),
                         ),
                       ),
                     ],
@@ -414,9 +414,9 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                   ),
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.shopping_cart,
-                        color: const Color(0xFFFEC62B),
+                        color: Color(0xFFFEC62B),
                         size: 18,
                       ),
                       const SizedBox(width: 4),

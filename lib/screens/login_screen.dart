@@ -103,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     final authProvider = Provider.of<AuthProvider>(context);
     final size = MediaQuery.of(context).size;
     final isDesktop = kIsWeb || size.width > 600;
-    final theme = Theme.of(context);
+    Theme.of(context);
     
     return Scaffold(
       body: SafeArea(
@@ -127,10 +127,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           color: const Color(0xFFFEC62B).withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.restaurant_menu,
                           size: 80,
-                          color: const Color(0xFFFEC62B),
+                          color: Color(0xFFFEC62B),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -194,12 +194,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
+                                      const Text(
                                         'Welcome Back',
                                         style: TextStyle(
                                           fontSize: 24,
                                           fontWeight: FontWeight.bold,
-                                          color: const Color(0xFFFEC62B),
+                                          color: Color(0xFFFEC62B),
                                         ),
                                       ),
                                       const SizedBox(height: 8),
@@ -221,9 +221,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   decoration: InputDecoration(
                                     labelText: 'Email',
                                     hintText: 'Enter your email',
-                                    prefixIcon: Icon(
+                                    prefixIcon: const Icon(
                                       Icons.email_outlined,
-                                      color: const Color(0xFFFEC62B),
+                                      color: Color(0xFFFEC62B),
                                     ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
@@ -247,9 +247,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   decoration: InputDecoration(
                                     labelText: 'Password',
                                     hintText: 'Enter your password',
-                                    prefixIcon: Icon(
+                                    prefixIcon: const Icon(
                                       Icons.lock_outline,
-                                      color: const Color(0xFFFEC62B),
+                                      color: Color(0xFFFEC62B),
                                     ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
@@ -384,7 +384,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   icon: const FaIcon(
                                     FontAwesomeIcons.google,
                                     size: 18,
-                                    color: Colors.red,
                                   ),
                                   label: const Text('Continue with Google'),
                                   style: OutlinedButton.styleFrom(

@@ -94,7 +94,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
     final authProvider = Provider.of<AuthProvider>(context);
     final size = MediaQuery.of(context).size;
     final isDesktop = kIsWeb || size.width > 600;
-    final theme = Theme.of(context);
+    Theme.of(context);
     
     return Scaffold(
       body: SafeArea(
@@ -118,21 +118,21 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                           color: const Color(0xFFFEC62B).withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.restaurant_menu,
                           size: 80,
-                          color: const Color(0xFFFEC62B),
+                          color: Color(0xFFFEC62B),
                         ),
                       ),
                       const SizedBox(height: 24),
                       
                       // App Name with enhanced typography
-                      Text(
+                      const Text(
                         'Campus Care',
                         style: TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFFFEC62B),
+                          color: Color(0xFFFEC62B),
                           letterSpacing: 1.2,
                         ),
                         textAlign: TextAlign.center,
@@ -185,12 +185,12 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
+                                      const Text(
                                         'Create Account',
                                         style: TextStyle(
                                           fontSize: 24,
                                           fontWeight: FontWeight.bold,
-                                          color: const Color(0xFFFEC62B),
+                                          color: Color(0xFFFEC62B),
                                         ),
                                       ),
                                       const SizedBox(height: 8),
@@ -212,9 +212,9 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                                   decoration: InputDecoration(
                                     labelText: 'Email',
                                     hintText: 'Enter your email',
-                                    prefixIcon: Icon(
+                                    prefixIcon: const Icon(
                                       Icons.email_outlined,
-                                      color: const Color(0xFFFEC62B),
+                                      color: Color(0xFFFEC62B),
                                     ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
@@ -238,9 +238,9 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                                   decoration: InputDecoration(
                                     labelText: 'Password',
                                     hintText: 'Create a password',
-                                    prefixIcon: Icon(
+                                    prefixIcon: const Icon(
                                       Icons.lock_outline,
-                                      color: const Color(0xFFFEC62B),
+                                      color: Color(0xFFFEC62B),
                                     ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
@@ -277,9 +277,9 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                                   decoration: InputDecoration(
                                     labelText: 'Confirm Password',
                                     hintText: 'Confirm your password',
-                                    prefixIcon: Icon(
+                                    prefixIcon: const Icon(
                                       Icons.lock_outline,
-                                      color: const Color(0xFFFEC62B),
+                                      color: Color(0xFFFEC62B),
                                     ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
@@ -419,7 +419,6 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                                   icon: const FaIcon(
                                     FontAwesomeIcons.google,
                                     size: 18,
-                                    color: Colors.red,
                                   ),
                                   label: const Text('Continue with Google'),
                                   style: OutlinedButton.styleFrom(

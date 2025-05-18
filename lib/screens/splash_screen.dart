@@ -89,7 +89,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final size = MediaQuery.of(context).size;
     final isDesktop = kIsWeb || size.width > 900;
     final theme = Theme.of(context);
-    final primaryColor = const Color(0xFFFEC62B);
+    const primaryColor = Color(0xFFFEC62B);
     
     return Scaffold(
       body: Container(
