@@ -18,7 +18,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   late AnimationController _recommendationController;
@@ -33,14 +34,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   ];
   List<ItemModel> _recommendedItems = [];
   final ScrollController _scrollController = ScrollController();
-  
+
   void _selectRandomRecommendations(List<ItemModel> allItems) {
     if (allItems.isEmpty) return;
 
     // Create a copy of the list to avoid modifying the original
     final availableItems = List<ItemModel>.from(
-        allItems.where((item) => item.availableToday).toList()
-    );
+        allItems.where((item) => item.availableToday).toList());
 
     // Shuffle the list to randomize
     availableItems.shuffle();
@@ -53,47 +53,48 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       _recommendedItems.add(_recommendedItems[0]);
     }
   }
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     // Setup animation for recommendations
     _recommendationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 5),
     );
-    
+
     _recommendationAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _recommendationController,
         curve: Curves.easeInOut,
       ),
     );
-    
+
     _recommendationController.repeat(reverse: true);
-    
+
     // Change recommendation every 5 seconds
     _recommendationController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
-          _currentRecommendationIndex = (_currentRecommendationIndex + 1) % _recommendations.length;
+          _currentRecommendationIndex =
+              (_currentRecommendationIndex + 1) % _recommendations.length;
         });
       }
     });
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final itemProvider = Provider.of<ItemProvider>(context, listen: false);
       final cartProvider = Provider.of<CartProvider>(context, listen: false);
-      
+
       if (authProvider.isAuthenticated) {
         itemProvider.loadItems().then((_) {
           _selectRandomRecommendations(itemProvider.items);
           setState(() {});
         });
         cartProvider.loadCartItems(authProvider.user!.id);
-        
+
         // Redirect staff to staff dashboard
         if (authProvider.isStaff) {
           Navigator.of(context).pushReplacement(
@@ -107,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   void didUpdateWidget(HomeScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     // If items are loaded but recommendations are empty, select them
     final itemProvider = Provider.of<ItemProvider>(context, listen: false);
     if (itemProvider.items.isNotEmpty && _recommendedItems.isEmpty) {
@@ -115,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       setState(() {});
     }
   }
-  
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -132,19 +133,21 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width > 900;
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       body: authProvider.isAuthenticated
-          ? _buildAuthenticatedContent(itemProvider, cartProvider, isDesktop, theme)
+          ? _buildAuthenticatedContent(
+              itemProvider, cartProvider, isDesktop, theme)
           : _buildUnauthenticatedContent(theme),
     );
   }
 
-  Widget _buildAuthenticatedContent(ItemProvider itemProvider, CartProvider cartProvider, bool isDesktop, ThemeData theme) {
+  Widget _buildAuthenticatedContent(ItemProvider itemProvider,
+      CartProvider cartProvider, bool isDesktop, ThemeData theme) {
     if (itemProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (itemProvider.error != null) {
       return Center(
         child: Column(
@@ -171,14 +174,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
       );
     }
-    
+
     // Filter items based on search query
     final filteredItems = itemProvider.items.where((item) {
       if (_searchQuery.isEmpty) return true;
       return item.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          (item.description?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
+          (item.description
+                  ?.toLowerCase()
+                  .contains(_searchQuery.toLowerCase()) ??
+              false);
     }).toList();
-    
+
     if (itemProvider.items.isEmpty) {
       return Center(
         child: Column(
@@ -210,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
       );
     }
-    
+
     // Use NestedScrollView to make app bar and search fixed at top
     return NestedScrollView(
       headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -271,7 +277,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 IconButton(
                   icon: const Icon(Icons.logout),
                   onPressed: () async {
-                    await Provider.of<AuthProvider>(context, listen: false).signOut();
+                    await Provider.of<AuthProvider>(context, listen: false)
+                        .signOut();
                     if (mounted) {
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -281,7 +288,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
             ],
           ),
-          
+
           // Search bar (fixed below app bar)
           SliverPersistentHeader(
             pinned: true,
@@ -297,19 +304,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   height: 50,
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(_searchQuery.isNotEmpty ? 16 : 12),
+                    borderRadius: BorderRadius.circular(
+                        _searchQuery.isNotEmpty ? 16 : 12),
                     boxShadow: [
                       BoxShadow(
-                        color: _searchQuery.isNotEmpty 
-                            ? theme.primaryColor.withOpacity(0.2) 
+                        color: _searchQuery.isNotEmpty
+                            ? theme.primaryColor.withOpacity(0.2)
                             : Colors.black.withOpacity(0.05),
                         blurRadius: _searchQuery.isNotEmpty ? 8 : 4,
                         offset: const Offset(0, 2),
                       ),
                     ],
                     border: Border.all(
-                      color: _searchQuery.isNotEmpty 
-                          ? theme.primaryColor.withOpacity(0.5) 
+                      color: _searchQuery.isNotEmpty
+                          ? theme.primaryColor.withOpacity(0.5)
                           : Colors.grey[200]!,
                       width: _searchQuery.isNotEmpty ? 1.5 : 1,
                     ),
@@ -322,7 +330,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         duration: const Duration(milliseconds: 300),
                         child: Icon(
                           Icons.search,
-                          color: _searchQuery.isNotEmpty ? theme.primaryColor : Colors.grey[400],
+                          color: _searchQuery.isNotEmpty
+                              ? theme.primaryColor
+                              : Colors.grey[400],
                         ),
                       ),
                       suffixIcon: _searchQuery.isNotEmpty
@@ -387,12 +397,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
             ),
           ),
-          
+
           // Results count
           if (_searchQuery.isNotEmpty)
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
                     Text(
@@ -406,7 +417,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
               ),
             ),
-          
+
           // Items grid
           filteredItems.isEmpty
               ? SliverFillRemaining(
@@ -444,8 +455,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   padding: const EdgeInsets.all(16),
                   sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: isDesktop ? 5 : 2, // More columns on desktop
-                      childAspectRatio: isDesktop ? 0.7 : 0.75, // Adjusted for desktop
+                      crossAxisCount:
+                          isDesktop ? 5 : 2, // More columns on desktop
+                      childAspectRatio:
+                          0.7, // Consistent aspect ratio regardless of screen size
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
                     ),
@@ -463,7 +476,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             item: item,
                           ),
                         );
-                        
+
                         return ItemCard(
                           item: item,
                           cartItem: cartItem,
@@ -473,16 +486,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                               return;
                             }
                             cartProvider.addToCart(
-                              Provider.of<AuthProvider>(context, listen: false).user!.id,
+                              Provider.of<AuthProvider>(context, listen: false)
+                                  .user!
+                                  .id,
                               item,
                             );
                           },
                           onIncreaseQuantity: () {
-                            cartProvider.updateQuantity(cartItem, cartItem.quantity + 1);
+                            cartProvider.updateQuantity(
+                                cartItem, cartItem.quantity + 1);
                           },
                           onDecreaseQuantity: () {
                             if (cartItem.quantity > 1) {
-                              cartProvider.updateQuantity(cartItem, cartItem.quantity - 1);
+                              cartProvider.updateQuantity(
+                                  cartItem, cartItem.quantity - 1);
                             } else {
                               cartProvider.removeFromCart(cartItem);
                             }
@@ -598,7 +615,8 @@ class _SliverSearchBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => maxHeight;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return SizedBox.expand(child: child);
   }
 

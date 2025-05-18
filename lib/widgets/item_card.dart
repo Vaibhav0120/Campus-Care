@@ -22,7 +22,6 @@ class ItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final inCart = cartItem != null && cartItem!.quantity > 0;
-    final isDesktop = MediaQuery.of(context).size.width > 900;
     
     return Card(
       elevation: 4,
@@ -30,26 +29,47 @@ class ItemCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Item image with enhanced design
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16),
-              topRight: Radius.circular(16),
-            ),
-            child: Stack(
-              children: [
-                SizedBox(
-                  height: isDesktop ? 140 : 180, // Smaller on desktop
-                  width: double.infinity,
-                  child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                      ? Image.network(
-                          item.imageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
+      // Use LayoutBuilder to get the card's constraints
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Calculate proportional heights
+          final totalHeight = constraints.maxHeight;
+          final imageHeight = totalHeight * 0.65; // 65% for image
+          final detailsHeight = totalHeight * 0.35; // 35% for details
+          
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Item image with fixed proportional height
+              SizedBox(
+                height: imageHeight,
+                width: double.infinity,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      item.imageUrl != null && item.imageUrl!.isNotEmpty
+                          ? Image.network(
+                              item.imageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: theme.primaryColor.withOpacity(0.1),
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.fastfood,
+                                      size: 40,
+                                      color: theme.primaryColor,
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          : Container(
                               color: theme.primaryColor.withOpacity(0.1),
                               child: Center(
                                 child: Icon(
@@ -58,121 +78,117 @@ class ItemCard extends StatelessWidget {
                                   color: theme.primaryColor,
                                 ),
                               ),
-                            );
-                          },
-                        )
-                      : Container(
-                          color: theme.primaryColor.withOpacity(0.1),
-                          child: Center(
-                            child: Icon(
-                              Icons.fastfood,
-                              size: 40,
-                              color: theme.primaryColor,
+                            ),
+                      // Price tag with enhanced design
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.primaryColor,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '₹${item.price.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
                             ),
                           ),
                         ),
-                ),
-                // Price tag with enhanced design
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.primaryColor,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      '₹${item.price.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        color: Colors.black87,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
                       ),
-                    ),
+                      // Availability badge
+                      if (!item.availableToday)
+                        Positioned.fill(
+                          child: Container(
+                            color: Colors.black.withOpacity(0.6),
+                            child: const Center(
+                              child: Text(
+                                'Not Available Today',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                // Availability badge
-                if (!item.availableToday)
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      color: Colors.black.withOpacity(0.6),
-                      child: const Center(
-                        child: Text(
-                          'Not Available Today',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+              ),
+              
+              // Item details with fixed proportional height
+              SizedBox(
+                height: detailsHeight,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Item name - fixed height
+                      SizedBox(
+                        height: detailsHeight * 0.25, // 25% of details area
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            item.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          
-          // Item details with enhanced design
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(isDesktop ? 8 : 8), // Same padding for both
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Item name
-                  Text(
-                    item.name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: isDesktop ? 13 : 14, // Smaller on desktop
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  
-                  // Item description - smaller on desktop
-                  if (item.description != null && item.description!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2), // Reduced padding
-                      child: Text(
-                        item.description!,
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: isDesktop ? 9 : 10, // Smaller on desktop
+                      
+                      // Item description - fixed height
+                      if (item.description != null && item.description!.isNotEmpty)
+                        SizedBox(
+                          height: detailsHeight * 0.25, // 25% of details area
+                          child: Text(
+                            item.description!,
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        maxLines: 1, // Only 1 line on both
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  
-                  const Spacer(),
-                  
-                  // Add to cart button or quantity controls
-                  if (item.availableToday)
-                    inCart
-                        ? _buildQuantityControls(theme)
-                        : _buildAddToCartButton(theme),
-                ],
+                      
+                      // Spacer with fixed height
+                      SizedBox(height: detailsHeight * 0.05), // 5% of details area
+                      
+                      // Add to cart button or quantity controls - fixed height
+                      if (item.availableToday)
+                        SizedBox(
+                          height: detailsHeight * 0.45, // 45% of details area
+                          child: inCart
+                              ? _buildQuantityControls(theme)
+                              : _buildAddToCartButton(theme),
+                        ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -180,12 +196,13 @@ class ItemCard extends StatelessWidget {
   Widget _buildAddToCartButton(ThemeData theme) {
     return SizedBox(
       width: double.infinity,
+      height: double.infinity,
       child: ElevatedButton(
         onPressed: onAddToCart,
         style: ElevatedButton.styleFrom(
           backgroundColor: theme.primaryColor,
           foregroundColor: Colors.black87,
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
@@ -203,7 +220,7 @@ class ItemCard extends StatelessWidget {
   Widget _buildQuantityControls(ThemeData theme) {
     return Container(
       width: double.infinity,
-      height: 36,
+      height: double.infinity,
       decoration: BoxDecoration(
         color: theme.primaryColor,
         borderRadius: BorderRadius.circular(10),
@@ -220,7 +237,7 @@ class ItemCard extends StatelessWidget {
             ),
             child: Container(
               width: 36,
-              height: 36,
+              height: double.infinity,
               decoration: BoxDecoration(
                 color: theme.primaryColor.withOpacity(0.8),
                 borderRadius: const BorderRadius.only(
@@ -255,7 +272,7 @@ class ItemCard extends StatelessWidget {
             ),
             child: Container(
               width: 36,
-              height: 36,
+              height: double.infinity,
               decoration: BoxDecoration(
                 color: theme.primaryColor.withOpacity(0.8),
                 borderRadius: const BorderRadius.only(
