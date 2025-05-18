@@ -22,6 +22,7 @@ class ItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final inCart = cartItem != null && cartItem!.quantity > 0;
+    final isDesktop = MediaQuery.of(context).size.width > 900;
     
     return Card(
       elevation: 4,
@@ -41,7 +42,7 @@ class ItemCard extends StatelessWidget {
             child: Stack(
               children: [
                 SizedBox(
-                  height: 180, // Changed from 140 to make image larger
+                  height: isDesktop ? 140 : 180, // Smaller on desktop
                   width: double.infinity,
                   child: item.imageUrl != null && item.imageUrl!.isNotEmpty
                       ? Image.network(
@@ -129,7 +130,7 @@ class ItemCard extends StatelessWidget {
           // Item details with enhanced design
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(8), // Reduced from 12 to 8
+              padding: EdgeInsets.all(isDesktop ? 8 : 8), // Same padding for both
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -137,25 +138,25 @@ class ItemCard extends StatelessWidget {
                   // Item name
                   Text(
                     item.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14, // Reduced from 16
+                      fontSize: isDesktop ? 13 : 14, // Smaller on desktop
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   
-                  // Item description
+                  // Item description - smaller on desktop
                   if (item.description != null && item.description!.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.only(top: 2), // Reduced from 4
+                      padding: const EdgeInsets.only(top: 2), // Reduced padding
                       child: Text(
                         item.description!,
                         style: TextStyle(
                           color: Colors.grey[600],
-                          fontSize: 10, // Reduced from 12
+                          fontSize: isDesktop ? 9 : 10, // Smaller on desktop
                         ),
-                        maxLines: 1, // Reduced from 2
+                        maxLines: 1, // Only 1 line on both
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
