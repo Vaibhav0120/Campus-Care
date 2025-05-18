@@ -95,7 +95,6 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
     
     // Responsive breakpoints - FIXED to use only width, not kIsWeb
     final isSmallMobile = size.width < 360;
-    final isMobile = size.width < 600;
     final isTablet = size.width >= 600 && size.width < 900;
     final isDesktop = size.width >= 900;
     

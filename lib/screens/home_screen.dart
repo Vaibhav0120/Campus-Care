@@ -24,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen>
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   late AnimationController _recommendationController;
+  // ignore: unused_field
   late Animation<double> _recommendationAnimation;
   int _currentRecommendationIndex = 0;
   final List<String> _recommendations = [

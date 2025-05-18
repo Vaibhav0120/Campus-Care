@@ -52158,7 +52158,7 @@ j===$&&A.a()
 m=j
 l=null
 j=A.vQ()
-l=j.gAx(j)+"/auth/callback"
+l=j.gAx(j)+"/login-callback"
 s=7
 return A.o(A.SJ(m.gjb(),B.RM,l,"email profile"),$async$wG)
 case 7:n.b=!1
@@ -53538,11 +53538,9 @@ l(){var s=this.d
 s===$&&A.a()
 s.l()
 this.aek()},
-L(a){var s,r=null
-A.V(a)
-s=this.d
-s===$&&A.a()
-return A.jr(A.Px(r,r,r,!0,r,A.b_D(s,B.C,B.C,B.bc,B.P9,B.a3,B.a0p),1,r,r,r,!1,r,!1,r,r,r,r,!0,r,r,r,r,r,B.a0K,r,r,r,1,r),new A.D5(new A.aIh(this),r,r,t.JB),r,r)},
+L(a){var s=null,r=this.d
+r===$&&A.a()
+return A.jr(A.Px(s,s,s,!0,s,A.b_D(r,B.C,B.C,B.bc,B.P9,B.a3,B.a0p),1,s,s,s,!1,s,!1,s,s,s,s,!0,s,s,s,s,s,B.a0K,s,s,s,1,s),new A.D5(new A.aIh(this),s,s,t.JB),s,s)},
 Ul(a,b,c){var s=null,r=a.length
 if(r===0)return A.bN(A.aQ(A.b([A.by(c?B.lz:B.L_,B.b6,s,64),B.R,A.a5(b,s,s,s,s,A.ap(s,s,B.P,s,s,s,s,s,s,s,s,18,s,s,B.w,s,s,!0,s,s,s,s,s,s,s,s),s,s)],t.p),B.q,B.aj,B.l),s,s)
 return A.VJ(A.Fu(new A.aIb(this,a,c),r,B.ah),s,new A.aIc(this))},

@@ -155,8 +155,8 @@ class AuthProvider with ChangeNotifier {
       String? redirectUrl;
       
       if (kIsWeb) {
-        // For web, use the current origin
-        redirectUrl = '${Uri.base.origin}/auth/callback';
+        // For web, use the current origin with /login-callback path
+        redirectUrl = '${Uri.base.origin}/login-callback';
       } else {
         // For mobile, use a deep link scheme
         redirectUrl = 'com.campuscare://login-callback';

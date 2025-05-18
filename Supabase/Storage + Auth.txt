@@ -1,7 +1,7 @@
 FOR GOOGLE AUTH
 
 Authentication -> URL CONFIGURATION
-Site URL	https://campus-care-seven.vercel.app/login-callback
+Site URL	https://campus-care-seven.vercel.app
 Redirect URLs	All of these:
 • https://campus-care-seven.vercel.app/
 • https://campus-care-seven.vercel.app/login-callback
