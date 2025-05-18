@@ -7,6 +7,7 @@ import 'package:campus_care/providers/auth_provider.dart';
 import 'package:campus_care/providers/cart_provider.dart';
 import 'package:campus_care/services/order_service.dart';
 import 'package:campus_care/screens/home_screen.dart';
+import 'package:lottie/lottie.dart';
 
 class PlaceOrderScreen extends StatefulWidget {
   const PlaceOrderScreen({Key? key}) : super(key: key);
@@ -15,15 +16,44 @@ class PlaceOrderScreen extends StatefulWidget {
   State<PlaceOrderScreen> createState() => _PlaceOrderScreenState();
 }
 
-class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
+class _PlaceOrderScreenState extends State<PlaceOrderScreen> with SingleTickerProviderStateMixin {
   final OrderService _orderService = OrderService();
   late Razorpay _razorpay;
   bool _isProcessing = false;
   String _selectedPaymentMethod = 'cash'; // 'cash' or 'upi'
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
+    
+    // Setup animations
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeIn,
+      ),
+    );
+    
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+    
+    _animationController.forward();
+    
     _razorpay = Razorpay();
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
@@ -33,6 +63,7 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
   @override
   void dispose() {
     _razorpay.clear();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -76,6 +107,9 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
       );
       
       if (order != null && mounted) {
+        // Clear the cart after successful order
+        await cartProvider.clearCart(authProvider.user!.id);
+        
         Fluttertoast.showToast(
           msg: "Order placed successfully!",
           toastLength: Toast.LENGTH_LONG,
@@ -137,7 +171,13 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Checkout'),
+        title: const Text(
+          'Checkout',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
         elevation: 0,
       ),
       body: _isProcessing
@@ -145,21 +185,44 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const CircularProgressIndicator(),
+                  // Use Lottie animation for processing state
+                  SizedBox(
+                    width: 200,
+                    height: 200,
+                    child: Lottie.network(
+                      'https://assets10.lottiefiles.com/packages/lf20_p8bfn5to.json',
+                      repeat: true,
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   Text(
                     'Processing your order...',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: theme.primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Please wait while we confirm your payment',
+                    style: TextStyle(
+                      fontSize: 14,
                       color: Colors.grey[700],
                     ),
                   ),
                 ],
               ),
             )
-          : isDesktop
-              ? _buildDesktopLayout(cartProvider, theme)
-              : _buildMobileLayout(cartProvider, theme),
+          : FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: isDesktop
+                    ? _buildDesktopLayout(cartProvider, theme)
+                    : _buildMobileLayout(cartProvider, theme),
+              ),
+            ),
     );
   }
 
@@ -174,62 +237,84 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Order Summary',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: theme.primaryColor,
-                  ),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.receipt_long,
+                      color: theme.primaryColor,
+                      size: 28,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Order Summary',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: theme.primaryColor,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
                 
-                // Items list
+                // Items list with enhanced design
                 Card(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  elevation: 2,
+                  elevation: 4,
+                  shadowColor: Colors.black.withOpacity(0.1),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     child: Column(
                       children: [
                         ...cartProvider.cartItems.map((item) => Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.only(bottom: 20),
                           child: Row(
                             children: [
-                              // Item image
+                              // Item image with enhanced design
                               ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: SizedBox(
-                                  width: 60,
-                                  height: 60,
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  width: 70,
+                                  height: 70,
+                                  decoration: BoxDecoration(
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 5),
+                                      ),
+                                    ],
+                                  ),
                                   child: item.item.imageUrl != null && item.item.imageUrl!.isNotEmpty
                                       ? Image.network(
                                           item.item.imageUrl!,
                                           fit: BoxFit.cover,
                                           errorBuilder: (context, error, stackTrace) {
                                             return Container(
-                                              color: Colors.grey[200],
+                                              color: theme.primaryColor.withOpacity(0.1),
                                               child: Icon(
                                                 Icons.fastfood,
-                                                color: theme.primaryColor.withOpacity(0.5),
+                                                color: theme.primaryColor,
+                                                size: 30,
                                               ),
                                             );
                                           },
                                         )
                                       : Container(
-                                          color: Colors.grey[200],
+                                          color: theme.primaryColor.withOpacity(0.1),
                                           child: Icon(
                                             Icons.fastfood,
-                                            color: theme.primaryColor.withOpacity(0.5),
+                                            color: theme.primaryColor,
+                                            size: 30,
                                           ),
                                         ),
                                 ),
                               ),
-                              const SizedBox(width: 16),
+                              const SizedBox(width: 20),
                               
-                              // Item details
+                              // Item details with enhanced design
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,52 +323,92 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
                                       item.item.name,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
+                                        fontSize: 16,
                                       ),
                                     ),
-                                    Text(
-                                      '₹${item.item.price.toStringAsFixed(2)} x ${item.quantity}',
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 14,
+                                    const SizedBox(height: 4),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: theme.primaryColor.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        '₹${item.item.price.toStringAsFixed(2)} x ${item.quantity}',
+                                        style: TextStyle(
+                                          color: Colors.grey[800],
+                                          fontSize: 14,
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
                               
-                              // Item total
-                              Text(
-                                '₹${item.totalPrice.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                              // Item total with enhanced design
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: theme.primaryColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: theme.primaryColor.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Text(
+                                  '₹${item.totalPrice.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.primaryColor,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         )).toList(),
                         
-                        const Divider(),
+                        Divider(
+                          color: Colors.grey[300],
+                          thickness: 1,
+                        ),
                         
-                        // Total
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Total',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                        // Total with enhanced design
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Total',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            Text(
-                              '₹${cartProvider.totalPrice.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: theme.primaryColor,
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: theme.primaryColor,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: theme.primaryColor.withOpacity(0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  '₹${cartProvider.totalPrice.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -294,7 +419,7 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
           ),
         ),
         
-        // Payment options (right side)
+        // Payment options (right side) with enhanced design
         Expanded(
           flex: 2,
           child: Container(
@@ -302,10 +427,10 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: Colors.black.withOpacity(0.1),
                   spreadRadius: 1,
                   blurRadius: 10,
                   offset: const Offset(0, 1),
@@ -315,22 +440,32 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Payment Method',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: theme.primaryColor,
-                  ),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.payment,
+                      color: theme.primaryColor,
+                      size: 28,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Payment Method',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: theme.primaryColor,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
                 
-                // Payment options
+                // Payment options with enhanced design
                 _buildPaymentOptions(theme),
                 
                 const Spacer(),
                 
-                // Place order button
+                // Place order button with enhanced design
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -344,19 +479,33 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
                             }
                           },
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 18),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      elevation: 4,
+                      shadowColor: theme.primaryColor.withOpacity(0.5),
                     ),
-                    child: Text(
-                      _selectedPaymentMethod == 'upi'
-                          ? 'Pay with UPI'
-                          : 'Place Order',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          _selectedPaymentMethod == 'upi'
+                              ? Icons.account_balance_wallet
+                              : Icons.shopping_bag,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _selectedPaymentMethod == 'upi'
+                              ? 'Pay with UPI'
+                              : 'Place Order',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -374,72 +523,164 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Order Summary',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: theme.primaryColor,
+          // Order summary title with enhanced design
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: theme.primaryColor.withOpacity(0.3),
+                  width: 2,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.receipt_long,
+                  color: theme.primaryColor,
+                  size: 24,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Order Summary',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: theme.primaryColor,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),
           
-          // Items list
+          // Items list with enhanced design
           Card(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
             ),
-            elevation: 2,
+            elevation: 4,
+            shadowColor: Colors.black.withOpacity(0.1),
             child: ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: cartProvider.cartItems.length,
-              separatorBuilder: (context, index) => const Divider(),
+              separatorBuilder: (context, index) => Divider(
+                color: Colors.grey[200],
+                thickness: 1,
+              ),
               itemBuilder: (context, index) {
                 final item = cartProvider.cartItems[index];
-                return ListTile(
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: item.item.imageUrl != null && item.item.imageUrl!.isNotEmpty
-                          ? Image.network(
-                              item.item.imageUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  color: Colors.grey[200],
+                return Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      // Item image with enhanced design
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: SizedBox(
+                          width: 60,
+                          height: 60,
+                          child: item.item.imageUrl != null && item.item.imageUrl!.isNotEmpty
+                              ? Image.network(
+                                  item.item.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: theme.primaryColor.withOpacity(0.1),
+                                      child: Icon(
+                                        Icons.fastfood,
+                                        color: theme.primaryColor,
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Container(
+                                  color: theme.primaryColor.withOpacity(0.1),
                                   child: Icon(
                                     Icons.fastfood,
-                                    color: theme.primaryColor.withOpacity(0.5),
+                                    color: theme.primaryColor,
                                   ),
-                                );
-                              },
-                            )
-                          : Container(
-                              color: Colors.grey[200],
-                              child: Icon(
-                                Icons.fastfood,
-                                color: theme.primaryColor.withOpacity(0.5),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      
+                      // Item details with enhanced design
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.item.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
                               ),
                             ),
-                    ),
-                  ),
-                  title: Text(item.item.name),
-                  subtitle: Text('₹${item.item.price.toStringAsFixed(2)} x ${item.quantity}'),
-                  trailing: Text(
-                    '₹${item.totalPrice.toStringAsFixed(2)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: theme.primaryColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                '₹${item.item.price.toStringAsFixed(2)} x ${item.quantity}',
+                                style: TextStyle(
+                                  color: Colors.grey[800],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      // Item total with enhanced design
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: theme.primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: theme.primaryColor.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Text(
+                          '₹${item.totalPrice.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: theme.primaryColor,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
             ),
           ),
           
-          // Total
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+          // Total with enhanced design
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 20),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+              border: Border.all(
+                color: theme.primaryColor.withOpacity(0.3),
+              ),
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -450,12 +691,26 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text(
-                  '₹${cartProvider.totalPrice.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
                     color: theme.primaryColor,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.primaryColor.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    '₹${cartProvider.totalPrice.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
               ],
@@ -464,23 +719,44 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
           
           const SizedBox(height: 24),
           
-          // Payment method
-          Text(
-            'Payment Method',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: theme.primaryColor,
+          // Payment method with enhanced design
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: theme.primaryColor.withOpacity(0.3),
+                  width: 2,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.payment,
+                  color: theme.primaryColor,
+                  size: 24,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Payment Method',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: theme.primaryColor,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),
           
-          // Payment options
+          // Payment options with enhanced design
           _buildPaymentOptions(theme),
           
           const SizedBox(height: 32),
           
-          // Place order button
+          // Place order button with enhanced design
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -494,19 +770,33 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
                       }
                     },
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 18),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                elevation: 4,
+                shadowColor: theme.primaryColor.withOpacity(0.5),
               ),
-              child: Text(
-                _selectedPaymentMethod == 'upi'
-                    ? 'Pay with UPI'
-                    : 'Place Order',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    _selectedPaymentMethod == 'upi'
+                        ? Icons.account_balance_wallet
+                        : Icons.shopping_bag,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _selectedPaymentMethod == 'upi'
+                        ? 'Pay with UPI'
+                        : 'Place Order',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -518,23 +808,36 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
   Widget _buildPaymentOptions(ThemeData theme) {
     return Column(
       children: [
-        // Cash option
+        // Cash option with enhanced design
         InkWell(
           onTap: () {
             setState(() {
               _selectedPaymentMethod = 'cash';
             });
           },
+          borderRadius: BorderRadius.circular(16),
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
+              color: _selectedPaymentMethod == 'cash'
+                  ? theme.primaryColor.withOpacity(0.1)
+                  : Colors.white,
               border: Border.all(
                 color: _selectedPaymentMethod == 'cash'
                     ? theme.primaryColor
                     : Colors.grey[300]!,
                 width: _selectedPaymentMethod == 'cash' ? 2 : 1,
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: _selectedPaymentMethod == 'cash'
+                  ? [
+                      BoxShadow(
+                        color: theme.primaryColor.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
             ),
             child: Row(
               children: [
@@ -563,30 +866,38 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
                         )
                       : null,
                 ),
-                const SizedBox(width: 12),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Cash on Delivery',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Cash on Delivery',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: _selectedPaymentMethod == 'cash'
+                              ? theme.primaryColor
+                              : Colors.black87,
+                        ),
                       ),
-                    ),
-                    Text(
-                      'Pay when you receive your order',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
+                      const SizedBox(height: 4),
+                      Text(
+                        'Pay when you receive your order',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const Spacer(),
                 Icon(
                   Icons.payments_outlined,
-                  color: Colors.grey[600],
+                  color: _selectedPaymentMethod == 'cash'
+                      ? theme.primaryColor
+                      : Colors.grey[600],
+                  size: 28,
                 ),
               ],
             ),
@@ -595,23 +906,36 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
         
         const SizedBox(height: 16),
         
-        // UPI option
+        // UPI option with enhanced design
         InkWell(
           onTap: () {
             setState(() {
               _selectedPaymentMethod = 'upi';
             });
           },
+          borderRadius: BorderRadius.circular(16),
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
+              color: _selectedPaymentMethod == 'upi'
+                  ? theme.primaryColor.withOpacity(0.1)
+                  : Colors.white,
               border: Border.all(
                 color: _selectedPaymentMethod == 'upi'
                     ? theme.primaryColor
                     : Colors.grey[300]!,
                 width: _selectedPaymentMethod == 'upi' ? 2 : 1,
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: _selectedPaymentMethod == 'upi'
+                  ? [
+                      BoxShadow(
+                        color: theme.primaryColor.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
             ),
             child: Row(
               children: [
@@ -640,30 +964,38 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
                         )
                       : null,
                 ),
-                const SizedBox(width: 12),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'UPI Payment',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'UPI Payment',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: _selectedPaymentMethod == 'upi'
+                              ? theme.primaryColor
+                              : Colors.black87,
+                        ),
                       ),
-                    ),
-                    Text(
-                      'Pay using UPI apps like Google Pay, PhonePe',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
+                      const SizedBox(height: 4),
+                      Text(
+                        'Pay using UPI apps like Google Pay, PhonePe',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const Spacer(),
                 Icon(
                   Icons.account_balance_wallet_outlined,
-                  color: Colors.grey[600],
+                  color: _selectedPaymentMethod == 'upi'
+                      ? theme.primaryColor
+                      : Colors.grey[600],
+                  size: 28,
                 ),
               ],
             ),
