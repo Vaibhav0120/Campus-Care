@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:campus_care/providers/auth_provider.dart';
 import 'package:campus_care/providers/item_provider.dart';
 import 'package:campus_care/providers/cart_provider.dart';
-import 'package:campus_care/screens/login_screen.dart';
+import 'package:campus_care/screens/auth/login_screen.dart';
 import 'package:campus_care/screens/staff/staff_dashboard.dart';
 import 'package:campus_care/widgets/item_card.dart';
 import 'package:campus_care/screens/cart_screen.dart';

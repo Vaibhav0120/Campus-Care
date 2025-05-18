@@ -49,7 +49,7 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
     String? imageUrl = item?.imageUrl;
     Uint8List? webImage;
     bool isUploading = false;
-    final primaryColor = const Color(0xFFFEC62B); // Match user home screen color
+    const primaryColor = Color(0xFFFEC62B); // Match user home screen color
 
     // Get screen size to adjust dialog width
     final screenSize = MediaQuery.of(context).size;
@@ -501,7 +501,7 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
   @override
   Widget build(BuildContext context) {
     final itemProvider = Provider.of<ItemProvider>(context);
-    final primaryColor = const Color(0xFFFEC62B); // Match user home screen color
+    const primaryColor = Color(0xFFFEC62B); // Match user home screen color
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 900;
     final isMediumScreen = size.width > 600 && size.width <= 900;

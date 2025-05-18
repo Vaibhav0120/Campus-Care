@@ -116,7 +116,7 @@ class _StaffOrderHistoryScreenState extends State<StaffOrderHistoryScreen> {
   }
 
   Widget _buildFilterChip(String label, String value) {
-    final primaryColor = const Color(0xFFFEC62B);
+    const primaryColor = Color(0xFFFEC62B);
     final isSelected = _filterOption == value;
     
     return FilterChip(
@@ -141,7 +141,7 @@ class _StaffOrderHistoryScreenState extends State<StaffOrderHistoryScreen> {
   }
 
   Widget _buildStatusChip(String label, String value) {
-    final primaryColor = const Color(0xFFFEC62B);
+    const primaryColor = Color(0xFFFEC62B);
     final isSelected = _statusFilter == value;
     
     return FilterChip(
@@ -167,7 +167,7 @@ class _StaffOrderHistoryScreenState extends State<StaffOrderHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = const Color(0xFFFEC62B); // Match user home screen color
+    const primaryColor = Color(0xFFFEC62B); // Match user home screen color
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 900;
     

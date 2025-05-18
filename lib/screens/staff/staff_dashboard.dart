@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart' as provider_pkg;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:campus_care/providers/auth_provider.dart';
-import 'package:campus_care/screens/login_screen.dart';
+import 'package:campus_care/screens/auth/login_screen.dart';
 import 'package:campus_care/screens/staff/manage_items_screen.dart';
 import 'package:campus_care/services/order_service.dart';
 import 'package:campus_care/models/order_model.dart';
@@ -190,7 +190,7 @@ class _StaffDashboardState extends State<StaffDashboard>
   Widget build(BuildContext context) {
     final authProvider = provider_pkg.Provider.of<AuthProvider>(context);
     final theme = Theme.of(context);
-    final primaryColor = const Color(0xFFFEC62B); // Match user home screen color
+    const primaryColor = Color(0xFFFEC62B); // Match user home screen color
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 900;
 
@@ -469,7 +469,7 @@ class _StaffDashboardState extends State<StaffDashboard>
   }
 
   Widget _buildPendingOrdersTab() {
-    final primaryColor = const Color(0xFFFEC62B); // Match user home screen color
+    const primaryColor = Color(0xFFFEC62B); // Match user home screen color
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 900;
     
@@ -565,7 +565,7 @@ class _StaffDashboardState extends State<StaffDashboard>
   }
 
   Widget _buildLargeScreenPendingOrders() {
-    final primaryColor = const Color(0xFFFEC62B);
+    const primaryColor = Color(0xFFFEC62B);
     
     return Padding(
       padding: const EdgeInsets.all(16),

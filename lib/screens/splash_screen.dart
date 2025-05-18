@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:campus_care/providers/auth_provider.dart';
 import 'package:campus_care/screens/home_screen.dart';
-import 'package:campus_care/screens/login_screen.dart';
+import 'package:campus_care/screens/auth/login_screen.dart';
 import 'package:campus_care/screens/staff/staff_dashboard.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:lottie/lottie.dart';

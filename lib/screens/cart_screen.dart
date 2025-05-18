@@ -58,15 +58,27 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
     final cartProvider = Provider.of<CartProvider>(context);
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
-    final isDesktop = kIsWeb || size.width > 900;
+    
+    // Responsive breakpoints - FIXED to use only width, not kIsWeb
+    final isSmallMobile = size.width < 360;
+    final isMobile = size.width < 600;
+    final isTablet = size.width >= 600 && size.width < 900;
+    final isDesktop = size.width >= 900;
+    
+    // Adjust font sizes and spacing based on screen size
+    final double titleSize = isSmallMobile ? 18 : isTablet ? 24 : 22;
+    final double emptyCartImageSize = isSmallMobile ? 150 : isTablet ? 300 : isDesktop ? 250 : 200;
+    final double emptyCartTextSize = isSmallMobile ? 18 : isTablet ? 26 : isDesktop ? 24 : 20;
+    final double emptyCartSubtextSize = isSmallMobile ? 14 : isTablet ? 20 : isDesktop ? 18 : 16;
+    final double buttonPadding = isSmallMobile ? 16 : isTablet ? 36 : isDesktop ? 32 : 24;
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'My Cart',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 22,
+            fontSize: titleSize,
           ),
         ),
         elevation: 0,
@@ -76,21 +88,50 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
         child: cartProvider.isLoading
             ? Center(
                 child: SizedBox(
-                  width: 150,
-                  height: 150,
+                  width: isSmallMobile ? 100 : 150,
+                  height: isSmallMobile ? 100 : 150,
                   child: Lottie.network(
                     'https://assets5.lottiefiles.com/packages/lf20_p8bfn5to.json',
                     repeat: true,
                   ),
                 ),
               )
-            : _buildCartContent(cartProvider, theme, isDesktop),
+            : _buildCartContent(
+                cartProvider, 
+                theme, 
+                isSmallMobile,
+                isMobile,
+                isTablet,
+                isDesktop,
+                emptyCartImageSize,
+                emptyCartTextSize,
+                emptyCartSubtextSize,
+                buttonPadding,
+              ),
       ),
-      bottomNavigationBar: _buildBottomBar(cartProvider, theme, isDesktop),
+      bottomNavigationBar: _buildBottomBar(
+        cartProvider, 
+        theme, 
+        isSmallMobile,
+        isMobile,
+        isTablet,
+        isDesktop,
+      ),
     );
   }
 
-  Widget _buildCartContent(CartProvider cartProvider, ThemeData theme, bool isDesktop) {
+  Widget _buildCartContent(
+    CartProvider cartProvider, 
+    ThemeData theme,
+    bool isSmallMobile,
+    bool isMobile,
+    bool isTablet,
+    bool isDesktop,
+    double emptyCartImageSize,
+    double emptyCartTextSize,
+    double emptyCartSubtextSize,
+    double buttonPadding,
+  ) {
     if (cartProvider.error != null) {
       return Center(
         child: Column(
@@ -98,14 +139,20 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
           children: [
             Icon(
               Icons.error_outline,
-              size: 64,
+              size: isSmallMobile ? 48 : 64,
               color: Colors.red[300],
             ),
             const SizedBox(height: 16),
-            Text(
-              'Error: ${cartProvider.error}',
-              style: TextStyle(color: Colors.red[700]),
-              textAlign: TextAlign.center,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'Error: ${cartProvider.error}',
+                style: TextStyle(
+                  color: Colors.red[700],
+                  fontSize: isSmallMobile ? 14 : 16,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
@@ -118,6 +165,10 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFEC62B),
                 foregroundColor: Colors.black87,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmallMobile ? 16 : 24,
+                  vertical: isSmallMobile ? 8 : 12,
+                ),
               ),
             ),
           ],
@@ -132,14 +183,14 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
           children: [
             Lottie.network(
               'https://assets2.lottiefiles.com/private_files/lf30_ghysqmiq.json',
-              width: isDesktop ? 250 : 200,
+              width: emptyCartImageSize,
               repeat: true,
             ),
             const SizedBox(height: 24),
             Text(
               'Your cart is empty',
               style: TextStyle(
-                fontSize: isDesktop ? 24 : 20,
+                fontSize: emptyCartTextSize,
                 fontWeight: FontWeight.bold,
                 color: Colors.grey[700],
               ),
@@ -148,7 +199,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
             Text(
               'Add some delicious items to your cart',
               style: TextStyle(
-                fontSize: isDesktop ? 18 : 16,
+                fontSize: emptyCartSubtextSize,
                 color: Colors.grey[600],
               ),
             ),
@@ -161,8 +212,8 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
               label: const Text('Browse Menu'),
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(
-                  horizontal: isDesktop ? 32 : 24,
-                  vertical: isDesktop ? 16 : 12,
+                  horizontal: buttonPadding,
+                  vertical: isSmallMobile ? 10 : isTablet ? 18 : 12,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -176,14 +227,17 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
       );
     }
     
-    if (isDesktop) {
+    final size = MediaQuery.of(context).size;
+    // Desktop and large tablet layout (side-by-side)
+    if (isDesktop || (isTablet && size.width >= 768)) {
       return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Cart items list (2/3 of the screen)
           Expanded(
             flex: 2,
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(isSmallMobile ? 12 : 16),
               itemCount: cartProvider.cartItems.length,
               itemBuilder: (context, index) {
                 final cartItem = cartProvider.cartItems[index];
@@ -199,8 +253,8 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
           Expanded(
             flex: 1,
             child: Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(24),
+              margin: EdgeInsets.all(isSmallMobile ? 12 : 16),
+              padding: EdgeInsets.all(isSmallMobile ? 16 : 24),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -220,29 +274,29 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.receipt_long,
                         color: Color(0xFFFEC62B),
                         size: 24,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
                         'Order Summary',
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: isSmallMobile ? 18 : 22,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFFEC62B),
+                          color: const Color(0xFFFEC62B),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: isSmallMobile ? 16 : 24),
                   
                   // Items count with enhanced design
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(isSmallMobile ? 12 : 16),
                     decoration: BoxDecoration(
                       color: Colors.grey[50],
                       borderRadius: BorderRadius.circular(12),
@@ -256,14 +310,14 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                         Text(
                           'Items (${cartProvider.cartItems.length})',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: isSmallMobile ? 14 : 16,
                             color: Colors.grey[700],
                           ),
                         ),
                         Text(
                           '₹${cartProvider.totalPrice.toStringAsFixed(2)}',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: isSmallMobile ? 14 : 16,
                             fontWeight: FontWeight.w500,
                             color: Colors.grey[800],
                           ),
@@ -272,14 +326,14 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                     ),
                   ),
                   
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Divider(),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: isSmallMobile ? 12 : 16),
+                    child: const Divider(),
                   ),
                   
                   // Total with enhanced design
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(isSmallMobile ? 12 : 16),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFEC62B).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
@@ -290,17 +344,17 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Total',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: isSmallMobile ? 16 : 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isSmallMobile ? 12 : 16,
+                            vertical: isSmallMobile ? 6 : 8,
                           ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFEC62B),
@@ -315,8 +369,8 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                           ),
                           child: Text(
                             '₹${cartProvider.totalPrice.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 18,
+                            style: TextStyle(
+                              fontSize: isSmallMobile ? 16 : 18,
                               fontWeight: FontWeight.bold,
                               color: Colors.black87,
                             ),
@@ -331,6 +385,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                   // Checkout button with enhanced design
                   SizedBox(
                     width: double.infinity,
+                    height: isSmallMobile ? 48 : 56,
                     child: ElevatedButton.icon(
                       onPressed: () {
                         Navigator.of(context).push(
@@ -342,7 +397,6 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                       icon: const Icon(Icons.shopping_cart_checkout),
                       label: const Text('Proceed to Checkout'),
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 18),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -362,7 +416,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
     
     // Mobile layout with enhanced design
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isSmallMobile ? 12 : 16),
       itemCount: cartProvider.cartItems.length,
       itemBuilder: (context, index) {
         final cartItem = cartProvider.cartItems[index];
@@ -374,13 +428,21 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildBottomBar(CartProvider cartProvider, ThemeData theme, bool isDesktop) {
-    if (cartProvider.cartItems.isEmpty || isDesktop) {
+  Widget _buildBottomBar(
+    CartProvider cartProvider, 
+    ThemeData theme,
+    bool isSmallMobile,
+    bool isMobile,
+    bool isTablet,
+    bool isDesktop,
+  ) {
+    // Don't show bottom bar for empty cart or desktop layout
+    if (cartProvider.cartItems.isEmpty || isDesktop || (isTablet && MediaQuery.of(context).size.width >= 768)) {
       return const SizedBox.shrink();
     }
     
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isSmallMobile ? 12 : 16),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -399,6 +461,31 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // For tablet, show a more detailed summary
+          if (isTablet)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Items (${cartProvider.cartItems.length})',
+                    style: TextStyle(
+                      fontSize: isSmallMobile ? 12 : 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  Text(
+                    '₹${cartProvider.totalPrice.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: isSmallMobile ? 14 : 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -408,7 +495,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                   Text(
                     'Total:',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: isSmallMobile ? 12 : 14,
                       color: Colors.grey[600],
                     ),
                   ),
@@ -422,37 +509,40 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                       const SizedBox(width: 4),
                       Text(
                         '₹${cartProvider.totalPrice.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 20,
+                        style: TextStyle(
+                          fontSize: isSmallMobile ? 18 : 20,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFFEC62B),
+                          color: const Color(0xFFFEC62B),
                         ),
                       ),
                     ],
                   ),
                 ],
               ),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const PlaceOrderScreen(),
+              SizedBox(
+                height: isSmallMobile ? 44 : 48,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const PlaceOrderScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.shopping_cart_checkout),
+                  label: Text(isSmallMobile ? 'Checkout' : 'Proceed to Checkout'),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isSmallMobile ? 16 : 24,
+                      vertical: isSmallMobile ? 10 : 12,
                     ),
-                  );
-                },
-                icon: const Icon(Icons.shopping_cart_checkout),
-                label: const Text('Checkout'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    backgroundColor: const Color(0xFFFEC62B),
+                    foregroundColor: Colors.black87,
+                    elevation: 2,
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  backgroundColor: const Color(0xFFFEC62B),
-                  foregroundColor: Colors.black87,
-                  elevation: 2,
                 ),
               ),
             ],

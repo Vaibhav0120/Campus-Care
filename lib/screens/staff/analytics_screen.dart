@@ -239,7 +239,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   
   @override
   Widget build(BuildContext context) {
-    final primaryColor = const Color(0xFFFEC62B); // Match user home screen color
+    const primaryColor = Color(0xFFFEC62B); // Match user home screen color
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 900;
     
