@@ -10,6 +10,9 @@ import 'package:campus_care/widgets/item_card.dart';
 import 'package:campus_care/screens/cart_screen.dart';
 import 'package:campus_care/widgets/recommendation_carousel.dart';
 import 'package:campus_care/models/item_model.dart';
+import 'package:campus_care/screens/order_history_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:campus_care/providers/order_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -222,6 +225,7 @@ class _HomeScreenState extends State<HomeScreen>
       headerSliverBuilder: (context, innerBoxIsScrolled) {
         return [
           // App Bar
+          // App Bar
           SliverAppBar(
             title: const Text(
               'Campus Care',
@@ -235,6 +239,19 @@ class _HomeScreenState extends State<HomeScreen>
             elevation: 0,
             forceElevated: innerBoxIsScrolled,
             actions: [
+              // History button
+              if (Provider.of<AuthProvider>(context).isAuthenticated)
+                IconButton(
+                  icon: const Icon(Icons.history),
+                  tooltip: 'Order History',
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => const OrderHistoryScreen()),
+                    );
+                  },
+                ),
+              // Cart button
               if (Provider.of<AuthProvider>(context).isAuthenticated)
                 Stack(
                   alignment: Alignment.center,
@@ -273,6 +290,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                   ],
                 ),
+              // Logout button
               if (Provider.of<AuthProvider>(context).isAuthenticated)
                 IconButton(
                   icon: const Icon(Icons.logout),
@@ -288,8 +306,8 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
             ],
           ),
-
-          // Search bar (fixed below app bar)
+          
+          // Search bar
           SliverPersistentHeader(
             pinned: true,
             delegate: _SliverSearchBarDelegate(

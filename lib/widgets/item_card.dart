@@ -138,6 +138,7 @@ class ItemCard extends StatelessWidget {
                   padding: const EdgeInsets.all(8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min, // Add this to prevent overflow
                     children: [
                       // Item name - fixed height
                       SizedBox(
@@ -177,7 +178,7 @@ class ItemCard extends StatelessWidget {
                       // Add to cart button or quantity controls - fixed height
                       if (item.availableToday)
                         SizedBox(
-                          height: detailsHeight * 0.45, // 45% of details area
+                          height: detailsHeight * 0.35, // Reduced from 0.45 to 0.35
                           child: inCart
                               ? _buildQuantityControls(theme)
                               : _buildAddToCartButton(theme),
@@ -196,21 +197,27 @@ class ItemCard extends StatelessWidget {
   Widget _buildAddToCartButton(ThemeData theme) {
     return SizedBox(
       width: double.infinity,
-      height: double.infinity,
+      height: 30, // Reduced from 36 to 30
       child: ElevatedButton(
         onPressed: onAddToCart,
         style: ElevatedButton.styleFrom(
           backgroundColor: theme.primaryColor,
           foregroundColor: Colors.black87,
-          padding: EdgeInsets.zero,
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0), // Reduced padding
+          minimumSize: const Size.fromHeight(30), // Ensure minimum height
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Reduce tap target size
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        child: const Text(
-          'Add to Cart',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
+        child: const FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            'Add to Cart',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 12, // Reduced font size
+            ),
           ),
         ),
       ),
@@ -220,7 +227,7 @@ class ItemCard extends StatelessWidget {
   Widget _buildQuantityControls(ThemeData theme) {
     return Container(
       width: double.infinity,
-      height: double.infinity,
+      height: 30, // Reduced from 36 to 30
       decoration: BoxDecoration(
         color: theme.primaryColor,
         borderRadius: BorderRadius.circular(10),
@@ -236,8 +243,8 @@ class ItemCard extends StatelessWidget {
               bottomLeft: Radius.circular(10),
             ),
             child: Container(
-              width: 36,
-              height: double.infinity,
+              width: 30, // Reduced from 36 to 30
+              height: 30, // Reduced from 36 to 30
               decoration: BoxDecoration(
                 color: theme.primaryColor.withOpacity(0.8),
                 borderRadius: const BorderRadius.only(
@@ -248,7 +255,7 @@ class ItemCard extends StatelessWidget {
               child: const Icon(
                 Icons.remove,
                 color: Colors.black87,
-                size: 20,
+                size: 16, // Reduced from 20 to 16
               ),
             ),
           ),
@@ -259,7 +266,7 @@ class ItemCard extends StatelessWidget {
             style: const TextStyle(
               color: Colors.black87,
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: 14, // Reduced from 16 to 14
             ),
           ),
           
@@ -271,8 +278,8 @@ class ItemCard extends StatelessWidget {
               bottomRight: Radius.circular(10),
             ),
             child: Container(
-              width: 36,
-              height: double.infinity,
+              width: 30, // Reduced from 36 to 30
+              height: 30, // Reduced from 36 to 30
               decoration: BoxDecoration(
                 color: theme.primaryColor.withOpacity(0.8),
                 borderRadius: const BorderRadius.only(
@@ -283,7 +290,7 @@ class ItemCard extends StatelessWidget {
               child: const Icon(
                 Icons.add,
                 color: Colors.black87,
-                size: 20,
+                size: 16, // Reduced from 20 to 16
               ),
             ),
           ),
