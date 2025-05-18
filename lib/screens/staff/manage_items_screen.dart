@@ -51,417 +51,448 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
     bool isUploading = false;
     final primaryColor = const Color(0xFFFEC62B); // Match user home screen color
 
+    // Get screen size to adjust dialog width
+    final screenSize = MediaQuery.of(context).size;
+    final isLargeScreen = screenSize.width > 900;
+    final dialogWidth = isLargeScreen ? 500.0 : screenSize.width * 0.9;
+
     await showDialog(
       context: context,
       builder: (dialogContext) =>
           StatefulBuilder(builder: (stateContext, setState) {
-        return AlertDialog(
-          title: Text(
-            item == null ? 'Add New Item' : 'Edit Item',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+        return Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Image preview section
-                  Center(
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: 180,
-                          width: 180,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.grey[300]!,
-                              width: 2,
-                            ),
-                          ),
-                          child: isUploading
-                              ? Center(
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
-                                  ),
-                                )
-                              : ClipRRect(
-                                  borderRadius: BorderRadius.circular(14),
-                                  child: kIsWeb
-                                      ? webImage != null
-                                          ? Image.memory(
-                                              webImage!,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) {
-                                                debugPrint(
-                                                    'Error loading web image: $error');
-                                                return Icon(
-                                                  Icons.image_not_supported,
-                                                  size: 50,
-                                                  color: Colors.grey[400],
-                                                );
-                                              },
-                                            )
-                                          : imageUrl != null && imageUrl.isNotEmpty
-                                              ? Image.network(
-                                                  imageUrl,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder:
-                                                      (context, error, stackTrace) {
-                                                    debugPrint(
-                                                        'Error loading network image: $error');
-                                                    return Icon(
-                                                      Icons.image_not_supported,
-                                                      size: 50,
-                                                      color: Colors.grey[400],
-                                                    );
-                                                  },
-                                                )
-                                              : Icon(
-                                                  Icons.add_photo_alternate,
-                                                  size: 50,
-                                                  color: Colors.grey[400],
-                                                )
-                                      : pickedImage != null
-                                          ? Image.file(
-                                              File(pickedImage!.path),
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) {
-                                                debugPrint(
-                                                    'Error loading file image: $error');
-                                                return Icon(
-                                                  Icons.image_not_supported,
-                                                  size: 50,
-                                                  color: Colors.grey[400],
-                                                );
-                                              },
-                                            )
-                                          : imageUrl != null && imageUrl.isNotEmpty
-                                              ? Image.network(
-                                                  imageUrl,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder:
-                                                      (context, error, stackTrace) {
-                                                    debugPrint(
-                                                        'Error loading network image: $error');
-                                                    return Icon(
-                                                      Icons.image_not_supported,
-                                                      size: 50,
-                                                      color: Colors.grey[400],
-                                                    );
-                                                  },
-                                                )
-                                              : Icon(
-                                                  Icons.add_photo_alternate,
-                                                  size: 50,
-                                                  color: Colors.grey[400],
-                                                ),
-                                ),
+          child: Container(
+            width: dialogWidth,
+            constraints: BoxConstraints(
+              maxWidth: 500,
+              maxHeight: isLargeScreen ? 700 : screenSize.height * 0.8,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Dialog title
+                      Text(
+                        item == null ? 'Add New Item' : 'Edit Item',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
                         ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: InkWell(
-                            onTap: isUploading
-                                ? null
-                                : () async {
-                                    try {
-                                      final XFile? image = await _picker.pickImage(
-                                        source: ImageSource.gallery,
-                                        maxWidth: 1024,
-                                        maxHeight: 1024,
-                                        imageQuality: 85,
-                                      );
-
-                                      if (image != null) {
-                                        setState(() {
-                                          pickedImage = image;
-                                          // For web, read the file as bytes for preview
-                                          if (kIsWeb) {
-                                            image.readAsBytes().then((value) {
-                                              setState(() {
-                                                webImage = value;
-                                              });
-                                            });
-                                          }
-                                        });
-                                      }
-                                    } catch (e) {
-                                      debugPrint('Error picking image: $e');
-                                      Fluttertoast.showToast(
-                                        msg: 'Error selecting image: $e',
-                                        toastLength: Toast.LENGTH_LONG,
-                                      );
-                                    }
-                                  },
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Image preview section
+                      Center(
+                        child: Stack(
+                          children: [
+                            Container(
+                              height: 200,
+                              width: 200,
                               decoration: BoxDecoration(
-                                color: primaryColor,
-                                shape: BoxShape.circle,
+                                color: Colors.grey[200],
+                                borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: Colors.white,
+                                  color: Colors.grey[300]!,
                                   width: 2,
                                 ),
                               ),
-                              child: const Icon(
-                                Icons.camera_alt,
-                                color: Colors.black87,
-                                size: 20,
+                              child: isUploading
+                                  ? Center(
+                                      child: CircularProgressIndicator(
+                                        valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+                                      ),
+                                    )
+                                  : ClipRRect(
+                                      borderRadius: BorderRadius.circular(14),
+                                      child: kIsWeb
+                                          ? webImage != null
+                                              ? Image.memory(
+                                                  webImage!,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error, stackTrace) {
+                                                    debugPrint(
+                                                        'Error loading web image: $error');
+                                                    return Icon(
+                                                      Icons.image_not_supported,
+                                                      size: 50,
+                                                      color: Colors.grey[400],
+                                                    );
+                                                  },
+                                                )
+                                              : imageUrl != null && imageUrl.isNotEmpty
+                                                  ? Image.network(
+                                                      imageUrl,
+                                                      fit: BoxFit.cover,
+                                                      errorBuilder:
+                                                          (context, error, stackTrace) {
+                                                        debugPrint(
+                                                            'Error loading network image: $error');
+                                                        return Icon(
+                                                          Icons.image_not_supported,
+                                                          size: 50,
+                                                          color: Colors.grey[400],
+                                                        );
+                                                      },
+                                                    )
+                                                  : Icon(
+                                                      Icons.add_photo_alternate,
+                                                      size: 50,
+                                                      color: Colors.grey[400],
+                                                    )
+                                          : pickedImage != null
+                                              ? Image.file(
+                                                  File(pickedImage!.path),
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error, stackTrace) {
+                                                    debugPrint(
+                                                        'Error loading file image: $error');
+                                                    return Icon(
+                                                      Icons.image_not_supported,
+                                                      size: 50,
+                                                      color: Colors.grey[400],
+                                                    );
+                                                  },
+                                                )
+                                              : imageUrl != null && imageUrl.isNotEmpty
+                                                  ? Image.network(
+                                                      imageUrl,
+                                                      fit: BoxFit.cover,
+                                                      errorBuilder:
+                                                          (context, error, stackTrace) {
+                                                        debugPrint(
+                                                            'Error loading network image: $error');
+                                                        return Icon(
+                                                          Icons.image_not_supported,
+                                                          size: 50,
+                                                          color: Colors.grey[400],
+                                                        );
+                                                      },
+                                                    )
+                                                  : Icon(
+                                                      Icons.add_photo_alternate,
+                                                      size: 50,
+                                                      color: Colors.grey[400],
+                                                    ),
+                                    ),
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: InkWell(
+                                onTap: isUploading
+                                    ? null
+                                    : () async {
+                                        try {
+                                          final XFile? image = await _picker.pickImage(
+                                            source: ImageSource.gallery,
+                                            maxWidth: 1024,
+                                            maxHeight: 1024,
+                                            imageQuality: 85,
+                                          );
+
+                                          if (image != null) {
+                                            setState(() {
+                                              pickedImage = image;
+                                              // For web, read the file as bytes for preview
+                                              if (kIsWeb) {
+                                                image.readAsBytes().then((value) {
+                                                  setState(() {
+                                                    webImage = value;
+                                                  });
+                                                });
+                                              }
+                                            });
+                                          }
+                                        } catch (e) {
+                                          debugPrint('Error picking image: $e');
+                                          Fluttertoast.showToast(
+                                            msg: 'Error selecting image: $e',
+                                            toastLength: Toast.LENGTH_LONG,
+                                          );
+                                        }
+                                      },
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: primaryColor,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt,
+                                    color: Colors.black87,
+                                    size: 20,
+                                  ),
+                                ),
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Item name field
+                      const Text(
+                        'Item Name',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: nameController,
+                        decoration: InputDecoration(
+                          hintText: 'Enter item name',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          prefixIcon: const Icon(Icons.fastfood),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a name';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Description field
+                      const Text(
+                        'Description',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: descriptionController,
+                        decoration: InputDecoration(
+                          hintText: 'Enter item description',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          prefixIcon: const Icon(Icons.description),
+                        ),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Price field
+                      const Text(
+                        'Price',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: priceController,
+                        decoration: InputDecoration(
+                          hintText: 'Enter price',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          prefixIcon: const Icon(Icons.currency_rupee),
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a price';
+                          }
+                          try {
+                            double.parse(value);
+                          } catch (e) {
+                            return 'Please enter a valid price';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Availability switch
+                      SwitchListTile(
+                        title: const Text(
+                          'Available Today',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  
-                  // Item name field
-                  const Text(
-                    'Item Name',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter item name',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        value: availableToday,
+                        activeColor: primaryColor,
+                        contentPadding: EdgeInsets.zero,
+                        onChanged: (value) {
+                          setState(() {
+                            availableToday = value;
+                          });
+                        },
                       ),
-                      prefixIcon: const Icon(Icons.fastfood),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a name';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Description field
-                  const Text(
-                    'Description',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: descriptionController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter item description',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Action buttons
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                            child: const Text('Cancel'),
+                          ),
+                          const SizedBox(width: 16),
+                          ElevatedButton(
+                            onPressed: isUploading
+                                ? null
+                                : () async {
+                                    if (formKey.currentState!.validate()) {
+                                      setState(() {
+                                        isUploading = true;
+                                      });
+
+                                      final itemProvider = Provider.of<ItemProvider>(
+                                          dialogContext,
+                                          listen: false);
+
+                                      String? finalImageUrl = imageUrl;
+
+                                      // Upload image if a new one was selected
+                                      if (pickedImage != null) {
+                                        try {
+                                          final fileName = '${const Uuid().v4()}.jpg';
+                                          debugPrint(
+                                              'Uploading image: ${pickedImage!.path} as $fileName');
+
+                                          finalImageUrl = await itemProvider.uploadImage(
+                                            pickedImage!.path,
+                                            fileName,
+                                          );
+
+                                          if (finalImageUrl == null) {
+                                            Fluttertoast.showToast(
+                                              msg:
+                                                  'Failed to upload image. Please try again.',
+                                              toastLength: Toast.LENGTH_LONG,
+                                            );
+                                            setState(() {
+                                              isUploading = false;
+                                            });
+                                            return;
+                                          }
+
+                                          debugPrint(
+                                              'Image uploaded successfully: $finalImageUrl');
+                                        } catch (e) {
+                                          debugPrint('Error uploading image: $e');
+                                          Fluttertoast.showToast(
+                                            msg: 'Error uploading image: $e',
+                                            toastLength: Toast.LENGTH_LONG,
+                                          );
+                                          setState(() {
+                                            isUploading = false;
+                                          });
+                                          return;
+                                        }
+                                      }
+
+                                      try {
+                                        if (item == null) {
+                                          // Create new item
+                                          final newItem = ItemModel(
+                                            id: const Uuid().v4(),
+                                            name: nameController.text,
+                                            description: descriptionController.text,
+                                            price: double.parse(priceController.text),
+                                            imageUrl: finalImageUrl,
+                                            availableToday: availableToday,
+                                            createdAt: DateTime.now(),
+                                          );
+
+                                          final success =
+                                              await itemProvider.createItem(newItem);
+                                          if (success) {
+                                            Fluttertoast.showToast(
+                                              msg: 'Item created successfully!',
+                                              toastLength: Toast.LENGTH_SHORT,
+                                            );
+                                          } else {
+                                            Fluttertoast.showToast(
+                                              msg: 'Failed to create item. Please try again.',
+                                              toastLength: Toast.LENGTH_LONG,
+                                            );
+                                          }
+                                        } else {
+                                          // Update existing item
+                                          final updatedItem = item.copyWith(
+                                            name: nameController.text,
+                                            description: descriptionController.text,
+                                            price: double.parse(priceController.text),
+                                            imageUrl: finalImageUrl,
+                                            availableToday: availableToday,
+                                          );
+
+                                          final success =
+                                              await itemProvider.updateItem(updatedItem);
+                                          if (success) {
+                                            Fluttertoast.showToast(
+                                              msg: 'Item updated successfully!',
+                                              toastLength: Toast.LENGTH_SHORT,
+                                            );
+                                          } else {
+                                            Fluttertoast.showToast(
+                                              msg: 'Failed to update item. Please try again.',
+                                              toastLength: Toast.LENGTH_LONG,
+                                            );
+                                          }
+                                        }
+
+                                        // Fixed: Added mounted check before using context
+                                        if (stateContext.mounted) {
+                                          Navigator.of(dialogContext).pop();
+                                        }
+                                      } catch (e) {
+                                        debugPrint('Error saving item: $e');
+                                        Fluttertoast.showToast(
+                                          msg: 'Error saving item: $e',
+                                          toastLength: Toast.LENGTH_LONG,
+                                        );
+                                        setState(() {
+                                          isUploading = false;
+                                        });
+                                      }
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryColor,
+                              foregroundColor: Colors.black87,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                            ),
+                            child: Text(item == null ? 'Add Item' : 'Save Changes'),
+                          ),
+                        ],
                       ),
-                      prefixIcon: const Icon(Icons.description),
-                    ),
-                    maxLines: 3,
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  
-                  // Price field
-                  const Text(
-                    'Price',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: priceController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter price',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      prefixIcon: const Icon(Icons.currency_rupee),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a price';
-                      }
-                      try {
-                        double.parse(value);
-                      } catch (e) {
-                        return 'Please enter a valid price';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Availability switch
-                  SwitchListTile(
-                    title: const Text(
-                      'Available Today',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    value: availableToday,
-                    activeColor: primaryColor,
-                    contentPadding: EdgeInsets.zero,
-                    onChanged: (value) {
-                      setState(() {
-                        availableToday = value;
-                      });
-                    },
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: isUploading
-                  ? null
-                  : () async {
-                      if (formKey.currentState!.validate()) {
-                        setState(() {
-                          isUploading = true;
-                        });
-
-                        final itemProvider = Provider.of<ItemProvider>(
-                            dialogContext,
-                            listen: false);
-
-                        String? finalImageUrl = imageUrl;
-
-                        // Upload image if a new one was selected
-                        if (pickedImage != null) {
-                          try {
-                            final fileName = '${const Uuid().v4()}.jpg';
-                            debugPrint(
-                                'Uploading image: ${pickedImage!.path} as $fileName');
-
-                            finalImageUrl = await itemProvider.uploadImage(
-                              pickedImage!.path,
-                              fileName,
-                            );
-
-                            if (finalImageUrl == null) {
-                              Fluttertoast.showToast(
-                                msg:
-                                    'Failed to upload image. Please try again.',
-                                toastLength: Toast.LENGTH_LONG,
-                              );
-                              setState(() {
-                                isUploading = false;
-                              });
-                              return;
-                            }
-
-                            debugPrint(
-                                'Image uploaded successfully: $finalImageUrl');
-                          } catch (e) {
-                            debugPrint('Error uploading image: $e');
-                            Fluttertoast.showToast(
-                              msg: 'Error uploading image: $e',
-                              toastLength: Toast.LENGTH_LONG,
-                            );
-                            setState(() {
-                              isUploading = false;
-                            });
-                            return;
-                          }
-                        }
-
-                        try {
-                          if (item == null) {
-                            // Create new item
-                            final newItem = ItemModel(
-                              id: const Uuid().v4(),
-                              name: nameController.text,
-                              description: descriptionController.text,
-                              price: double.parse(priceController.text),
-                              imageUrl: finalImageUrl,
-                              availableToday: availableToday,
-                              createdAt: DateTime.now(),
-                            );
-
-                            final success =
-                                await itemProvider.createItem(newItem);
-                            if (success) {
-                              Fluttertoast.showToast(
-                                msg: 'Item created successfully!',
-                                toastLength: Toast.LENGTH_SHORT,
-                              );
-                            } else {
-                              Fluttertoast.showToast(
-                                msg: 'Failed to create item. Please try again.',
-                                toastLength: Toast.LENGTH_LONG,
-                              );
-                            }
-                          } else {
-                            // Update existing item
-                            final updatedItem = item.copyWith(
-                              name: nameController.text,
-                              description: descriptionController.text,
-                              price: double.parse(priceController.text),
-                              imageUrl: finalImageUrl,
-                              availableToday: availableToday,
-                            );
-
-                            final success =
-                                await itemProvider.updateItem(updatedItem);
-                            if (success) {
-                              Fluttertoast.showToast(
-                                msg: 'Item updated successfully!',
-                                toastLength: Toast.LENGTH_SHORT,
-                              );
-                            } else {
-                              Fluttertoast.showToast(
-                                msg: 'Failed to update item. Please try again.',
-                                toastLength: Toast.LENGTH_LONG,
-                              );
-                            }
-                          }
-
-                          // Fixed: Added mounted check before using context
-                          if (stateContext.mounted) {
-                            Navigator.of(dialogContext).pop();
-                          }
-                        } catch (e) {
-                          debugPrint('Error saving item: $e');
-                          Fluttertoast.showToast(
-                            msg: 'Error saving item: $e',
-                            toastLength: Toast.LENGTH_LONG,
-                          );
-                          setState(() {
-                            isUploading = false;
-                          });
-                        }
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
-                foregroundColor: Colors.black87,
-              ),
-              child: Text(item == null ? 'Add Item' : 'Save Changes'),
-            ),
-          ],
         );
       }),
     );
@@ -471,6 +502,17 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
   Widget build(BuildContext context) {
     final itemProvider = Provider.of<ItemProvider>(context);
     final primaryColor = const Color(0xFFFEC62B); // Match user home screen color
+    final size = MediaQuery.of(context).size;
+    final isLargeScreen = size.width > 900;
+    final isMediumScreen = size.width > 600 && size.width <= 900;
+
+    // Determine grid columns based on screen size
+    int crossAxisCount = 2; // Default for small screens
+    if (isLargeScreen) {
+      crossAxisCount = 4; // 4 columns for large screens
+    } else if (isMediumScreen) {
+      crossAxisCount = 3; // 3 columns for medium screens
+    }
 
     if (itemProvider.isLoading) {
       return Center(
@@ -525,66 +567,148 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
     return Scaffold(
       body: Column(
         children: [
-          // Search and filter bar
-          Padding(
+          // Search and filter bar - Responsive layout
+          Container(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // Search bar
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search menu items...',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              setState(() {
-                                _searchController.clear();
-                                _searchQuery = '';
-                              });
-                            },
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _searchQuery = value;
-                    });
-                  },
-                ),
-                
-                // Filter switch
-                SwitchListTile(
-                  title: const Text(
-                    'Show only available items',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  value: _showOnlyAvailable,
-                  activeColor: primaryColor,
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                  onChanged: (value) {
-                    setState(() {
-                      _showOnlyAvailable = value;
-                    });
-                  },
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
+            child: isLargeScreen
+                ? Row(
+                    children: [
+                      // Search bar
+                      Expanded(
+                        flex: 3,
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: 'Search menu items...',
+                            prefixIcon: const Icon(Icons.search),
+                            suffixIcon: _searchQuery.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: () {
+                                      setState(() {
+                                        _searchController.clear();
+                                        _searchQuery = '';
+                                      });
+                                    },
+                                  )
+                                : null,
+                            filled: true,
+                            fillColor: Colors.grey[100],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      
+                      // Filter switch
+                      Expanded(
+                        flex: 2,
+                        child: SwitchListTile(
+                          title: const Text(
+                            'Show only available items',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          value: _showOnlyAvailable,
+                          activeColor: primaryColor,
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                          onChanged: (value) {
+                            setState(() {
+                              _showOnlyAvailable = value;
+                            });
+                          },
+                        ),
+                      ),
+                      
+                      const SizedBox(width: 16),
+                      
+                      // Refresh button
+                      TextButton.icon(
+                        onPressed: () => itemProvider.loadItems(onlyAvailable: false),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Refresh'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: primaryColor,
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    children: [
+                      // Search bar
+                      TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search menu items...',
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    setState(() {
+                                      _searchController.clear();
+                                      _searchQuery = '';
+                                    });
+                                  },
+                                )
+                              : null,
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            _searchQuery = value;
+                          });
+                        },
+                      ),
+                      
+                      // Filter switch
+                      SwitchListTile(
+                        title: const Text(
+                          'Show only available items',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        value: _showOnlyAvailable,
+                        activeColor: primaryColor,
+                        contentPadding: EdgeInsets.zero,
+                        dense: true,
+                        onChanged: (value) {
+                          setState(() {
+                            _showOnlyAvailable = value;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
           ),
           
           // Items count
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
                 Text(
@@ -595,19 +719,20 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                   ),
                 ),
                 const Spacer(),
-                TextButton.icon(
-                  onPressed: () => itemProvider.loadItems(onlyAvailable: false),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Refresh'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: primaryColor,
+                if (!isLargeScreen)
+                  TextButton.icon(
+                    onPressed: () => itemProvider.loadItems(onlyAvailable: false),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Refresh'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: primaryColor,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
           
-          // Items list
+          // Items grid - Responsive layout
           Expanded(
             child: filteredItems.isEmpty
                 ? Center(
@@ -650,157 +775,16 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                   )
                 : GridView.builder(
                     padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.75,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      childAspectRatio: isLargeScreen ? 0.85 : 0.75, // Adjusted for better proportions
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
                     ),
                     itemCount: filteredItems.length,
                     itemBuilder: (context, index) {
                       final item = filteredItems[index];
-                      return Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          onTap: () => _showAddEditItemDialog(context, item),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Item image
-                              Stack(
-                                children: [
-                                  SizedBox(
-                                    height: 120,
-                                    width: double.infinity,
-                                    child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                                        ? Image.network(
-                                            item.imageUrl!,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) {
-                                              return Container(
-                                                color: Colors.grey[200],
-                                                child: const Icon(
-                                                  Icons.fastfood,
-                                                  size: 50,
-                                                  color: Colors.grey,
-                                                ),
-                                              );
-                                            },
-                                          )
-                                        : Container(
-                                            color: Colors.grey[200],
-                                            child: const Icon(
-                                              Icons.fastfood,
-                                              size: 50,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                  ),
-                                  // Availability badge
-                                  Positioned(
-                                    top: 8,
-                                    right: 8,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: item.availableToday
-                                            ? Colors.green
-                                            : Colors.red,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        item.availableToday ? 'Available' : 'Unavailable',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              
-                              // Item details
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '₹${item.price.toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                          color: primaryColor,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          // Edit button
-                                          Expanded(
-                                            child: OutlinedButton(
-                                              onPressed: () => _showAddEditItemDialog(context, item),
-                                              style: OutlinedButton.styleFrom(
-                                                padding: EdgeInsets.zero,
-                                                foregroundColor: primaryColor,
-                                                side: BorderSide(color: primaryColor),
-                                              ),
-                                              child: const Text('Edit'),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          // Toggle availability button
-                                          IconButton(
-                                            onPressed: () {
-                                              itemProvider.toggleItemAvailability(
-                                                item.id,
-                                                !item.availableToday,
-                                              );
-                                            },
-                                            icon: Icon(
-                                              item.availableToday
-                                                  ? Icons.visibility
-                                                  : Icons.visibility_off,
-                                              color: item.availableToday
-                                                  ? Colors.green
-                                                  : Colors.red,
-                                            ),
-                                            tooltip: item.availableToday
-                                                ? 'Mark as unavailable'
-                                                : 'Mark as available',
-                                            padding: EdgeInsets.zero,
-                                            constraints: const BoxConstraints(),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+                      return _buildItemCard(context, item, primaryColor);
                     },
                   ),
           ),
@@ -811,6 +795,179 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
         backgroundColor: primaryColor,
         foregroundColor: Colors.black87,
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildItemCard(BuildContext context, ItemModel item, Color primaryColor) {
+    final size = MediaQuery.of(context).size;
+    final isLargeScreen = size.width > 900;
+    
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _showAddEditItemDialog(context, item),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Item image
+            Stack(
+              children: [
+                SizedBox(
+                  height: isLargeScreen ? 140 : 120, // Taller image for large screens
+                  width: double.infinity,
+                  child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                      ? Image.network(
+                          item.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey[200],
+                              child: const Icon(
+                                Icons.fastfood,
+                                size: 50,
+                                color: Colors.grey,
+                              ),
+                            );
+                          },
+                        )
+                      : Container(
+                          color: Colors.grey[200],
+                          child: const Icon(
+                            Icons.fastfood,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                        ),
+                ),
+                // Availability badge
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: item.availableToday
+                          ? Colors.green
+                          : Colors.red,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      item.availableToday ? 'Available' : 'Unavailable',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            
+            // Item details
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        if (item.description != null && item.description!.isNotEmpty)
+                          Text(
+                            item.description!,
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '₹${item.price.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            color: primaryColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    // Action buttons
+                    Row(
+                      children: [
+                        // Edit button
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => _showAddEditItemDialog(context, item),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              foregroundColor: primaryColor,
+                              side: BorderSide(color: primaryColor),
+                            ),
+                            child: const Text('Edit'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Toggle availability button
+                        Container(
+                          decoration: BoxDecoration(
+                            color: item.availableToday ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: IconButton(
+                            onPressed: () {
+                              Provider.of<ItemProvider>(context, listen: false).toggleItemAvailability(
+                                item.id,
+                                !item.availableToday,
+                              );
+                            },
+                            icon: Icon(
+                              item.availableToday
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: item.availableToday
+                                  ? Colors.green
+                                  : Colors.red,
+                              size: 20,
+                            ),
+                            tooltip: item.availableToday
+                                ? 'Mark as unavailable'
+                                : 'Mark as available',
+                            padding: const EdgeInsets.all(8),
+                            constraints: const BoxConstraints(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

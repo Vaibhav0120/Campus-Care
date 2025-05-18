@@ -190,7 +190,9 @@ class _StaffDashboardState extends State<StaffDashboard>
   Widget build(BuildContext context) {
     final authProvider = provider_pkg.Provider.of<AuthProvider>(context);
     final theme = Theme.of(context);
-    const primaryColor = Color(0xFFFEC62B); // Match user home screen color
+    final primaryColor = const Color(0xFFFEC62B); // Match user home screen color
+    final size = MediaQuery.of(context).size;
+    final isLargeScreen = size.width > 900;
 
     if (!authProvider.isAuthenticated || !authProvider.isStaff) {
       return Scaffold(
@@ -273,6 +275,7 @@ class _StaffDashboardState extends State<StaffDashboard>
       );
     }
 
+    // Responsive layout for staff dashboard
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -295,61 +298,180 @@ class _StaffDashboardState extends State<StaffDashboard>
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Container(
-            color: primaryColor,
-            child: TabBar(
-              controller: _tabController,
-              indicatorColor: Colors.black87,
-              labelColor: Colors.black87,
-              unselectedLabelColor: Colors.black54,
-              labelStyle: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
+      body: isLargeScreen
+          ? _buildLargeScreenLayout(primaryColor)
+          : _buildSmallScreenLayout(primaryColor),
+    );
+  }
+
+  Widget _buildLargeScreenLayout(Color primaryColor) {
+    return Row(
+      children: [
+        // Side navigation
+        Container(
+          width: 220,
+          color: Colors.white,
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              _buildNavItem(0, 'Pending Orders', Icons.pending_actions, primaryColor),
+              _buildNavItem(1, 'Order History', Icons.history, primaryColor),
+              _buildNavItem(2, 'Analytics', Icons.analytics, primaryColor),
+              _buildNavItem(3, 'Manage Menu', Icons.restaurant_menu, primaryColor),
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.support_agent,
+                        color: primaryColor,
+                      ),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Need help? Contact support',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              unselectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.normal,
-                fontSize: 14,
+            ],
+          ),
+        ),
+        
+        // Vertical divider
+        VerticalDivider(
+          width: 1,
+          thickness: 1,
+          color: Colors.grey[300],
+        ),
+        
+        // Content area
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            physics: const NeverScrollableScrollPhysics(), // Disable swiping
+            children: [
+              _buildPendingOrdersTab(),
+              const StaffOrderHistoryScreen(),
+              const AnalyticsScreen(),
+              const ManageItemsScreen(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSmallScreenLayout(Color primaryColor) {
+    return Column(
+      children: [
+        Container(
+          color: primaryColor,
+          child: TabBar(
+            controller: _tabController,
+            indicatorColor: Colors.black87,
+            labelColor: Colors.black87,
+            unselectedLabelColor: Colors.black54,
+            labelStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.normal,
+              fontSize: 14,
+            ),
+            tabs: const [
+              Tab(
+                icon: Icon(Icons.pending_actions),
+                text: 'Pending',
               ),
-              tabs: const [
-                Tab(
-                  icon: Icon(Icons.pending_actions),
-                  text: 'Pending',
-                ),
-                Tab(
-                  icon: Icon(Icons.history),
-                  text: 'History',
-                ),
-                Tab(
-                  icon: Icon(Icons.analytics),
-                  text: 'Analytics',
-                ),
-                Tab(
-                  icon: Icon(Icons.restaurant_menu),
-                  text: 'Menu',
-                ),
-              ],
+              Tab(
+                icon: Icon(Icons.history),
+                text: 'History',
+              ),
+              Tab(
+                icon: Icon(Icons.analytics),
+                text: 'Analytics',
+              ),
+              Tab(
+                icon: Icon(Icons.restaurant_menu),
+                text: 'Menu',
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildPendingOrdersTab(),
+              const StaffOrderHistoryScreen(),
+              const AnalyticsScreen(),
+              const ManageItemsScreen(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNavItem(int index, String title, IconData icon, Color primaryColor) {
+    final isSelected = _tabController.index == index;
+    
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _tabController.animateTo(index);
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? primaryColor.withOpacity(0.1) : Colors.transparent,
+          border: Border(
+            left: BorderSide(
+              color: isSelected ? primaryColor : Colors.transparent,
+              width: 4,
             ),
           ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildPendingOrdersTab(),
-                const StaffOrderHistoryScreen(),
-                const AnalyticsScreen(),
-                const ManageItemsScreen(),
-              ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? primaryColor : Colors.grey[600],
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Text(
+              title,
+              style: TextStyle(
+                color: isSelected ? primaryColor : Colors.grey[800],
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildPendingOrdersTab() {
-    const primaryColor = Color(0xFFFEC62B); // Match user home screen color
+    final primaryColor = const Color(0xFFFEC62B); // Match user home screen color
+    final size = MediaQuery.of(context).size;
+    final isLargeScreen = size.width > 900;
     
     if (_isLoading) {
       return Center(
@@ -436,44 +558,120 @@ class _StaffDashboardState extends State<StaffDashboard>
     return RefreshIndicator(
       onRefresh: _loadPendingOrders,
       color: primaryColor,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _pendingOrders.length,
-        itemBuilder: (context, index) {
-          final order = _pendingOrders[index];
-          return Card(
-            margin: const EdgeInsets.only(bottom: 16),
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+      child: isLargeScreen
+          ? _buildLargeScreenPendingOrders()
+          : _buildSmallScreenPendingOrders(),
+    );
+  }
+
+  Widget _buildLargeScreenPendingOrders() {
+    final primaryColor = const Color(0xFFFEC62B);
+    
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Text(
+            'Pending Orders (${_pendingOrders.length})',
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
             ),
-            child: Column(
-              children: [
-                OrderTile(
-                  order: order,
-                  isStaff: true,
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: ElevatedButton.icon(
-                    onPressed: () => _markOrderAsCompleted(order.id),
-                    icon: const Icon(Icons.check_circle),
-                    label: const Text('Mark as Completed'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(double.infinity, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+          ),
+          const SizedBox(height: 16),
+          
+          // Orders grid
+          Expanded(
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 1.5,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              itemCount: _pendingOrders.length,
+              itemBuilder: (context, index) {
+                final order = _pendingOrders[index];
+                return Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: OrderTile(
+                          order: order,
+                          isStaff: true,
+                        ),
                       ),
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: ElevatedButton.icon(
+                          onPressed: () => _markOrderAsCompleted(order.id),
+                          icon: const Icon(Icons.check_circle),
+                          label: const Text('Mark as Completed'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(double.infinity, 48),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSmallScreenPendingOrders() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _pendingOrders.length,
+      itemBuilder: (context, index) {
+        final order = _pendingOrders[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            children: [
+              OrderTile(
+                order: order,
+                isStaff: true,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: ElevatedButton.icon(
+                  onPressed: () => _markOrderAsCompleted(order.id),
+                  icon: const Icon(Icons.check_circle),
+                  label: const Text('Mark as Completed'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
