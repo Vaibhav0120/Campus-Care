@@ -8,6 +8,8 @@ import 'package:campus_care/screens/login_screen.dart';
 import 'package:campus_care/screens/staff/staff_dashboard.dart';
 import 'package:campus_care/widgets/item_card.dart';
 import 'package:campus_care/screens/cart_screen.dart';
+import 'dart:async';
+import 'package:campus_care/models/item_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -29,6 +31,28 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     'Healthy Options',
     'Quick Bites'
   ];
+  List<ItemModel> _recommendedItems = [];
+  late PageController _recommendationPageController;
+
+  void _selectRandomRecommendations(List<ItemModel> allItems) {
+    if (allItems.isEmpty) return;
+
+    // Create a copy of the list to avoid modifying the original
+    final availableItems = List<ItemModel>.from(
+        allItems.where((item) => item.availableToday).toList()
+    );
+
+    // Shuffle the list to randomize
+    availableItems.shuffle();
+
+    // Take up to 3 items or all available if less than 3
+    _recommendedItems = availableItems.take(3).toList();
+
+    // If we have less than 3 items, duplicate some to make it 3
+    while (_recommendedItems.length < 3 && _recommendedItems.isNotEmpty) {
+      _recommendedItems.add(_recommendedItems[0]);
+    }
+  }
   
   @override
   void initState() {
@@ -57,6 +81,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         });
       }
     });
+
+    _recommendationPageController = PageController(initialPage: 0);
+
+    // Auto-scroll the recommendations
+    Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (_recommendationPageController.hasClients) {
+        final nextPage = (_recommendationPageController.page?.toInt() ?? 0) + 1;
+        _recommendationPageController.animateToPage(
+          nextPage % 3,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -64,7 +102,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       final cartProvider = Provider.of<CartProvider>(context, listen: false);
       
       if (authProvider.isAuthenticated) {
-        itemProvider.loadItems();
+        itemProvider.loadItems().then((_) {
+          _selectRandomRecommendations(itemProvider.items);
+          setState(() {});
+        });
         cartProvider.loadCartItems(authProvider.user!.id);
         
         // Redirect staff to staff dashboard
@@ -76,11 +117,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       }
     });
   }
+
+  @override
+  void didUpdateWidget(HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // If items are loaded but recommendations are empty, select them
+    final itemProvider = Provider.of<ItemProvider>(context, listen: false);
+    if (itemProvider.items.isNotEmpty && _recommendedItems.isEmpty) {
+      _selectRandomRecommendations(itemProvider.items);
+      setState(() {});
+    }
+  }
   
   @override
   void dispose() {
     _searchController.dispose();
     _recommendationController.dispose();
+    _recommendationPageController.dispose();
     super.dispose();
   }
 
@@ -254,121 +308,344 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
           child: Column(
             children: [
-              TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search for food items...',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            setState(() {
-                              _searchController.clear();
-                              _searchQuery = '';
-                            });
-                          },
-                        )
-                      : null,
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[200]!),
+              // Animated search bar
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(_searchQuery.isNotEmpty ? 16 : 12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _searchQuery.isNotEmpty 
+                          ? theme.primaryColor.withOpacity(0.2) 
+                          : Colors.black.withOpacity(0.05),
+                      blurRadius: _searchQuery.isNotEmpty ? 8 : 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: _searchQuery.isNotEmpty 
+                        ? theme.primaryColor.withOpacity(0.5) 
+                        : Colors.grey[200]!,
+                    width: _searchQuery.isNotEmpty ? 1.5 : 1,
                   ),
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search for food items...',
+                    prefixIcon: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      child: Icon(
+                        Icons.search,
+                        color: _searchQuery.isNotEmpty ? theme.primaryColor : Colors.grey[400],
+                      ),
+                    ),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? TweenAnimationBuilder<double>(
+                            tween: Tween<double>(begin: 0.0, end: 1.0),
+                            duration: const Duration(milliseconds: 300),
+                            builder: (context, value, child) {
+                              return Opacity(
+                                opacity: value,
+                                child: IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    setState(() {
+                                      _searchController.clear();
+                                      _searchQuery = '';
+                                    });
+                                  },
+                                ),
+                              );
+                            },
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                ),
               ),
               
               // Recommendation box that automatically switches
               const SizedBox(height: 12),
-              AnimatedBuilder(
-                animation: _recommendationAnimation,
-                builder: (context, child) {
-                  return Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                      border: Border.all(
-                        color: theme.primaryColor.withOpacity(0.3),
+              // Enhanced recommendation box with scrollable indicators
+              Container(
+                width: double.infinity,
+                height: 150,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16, top: 8, bottom: 4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.recommend,
+                            color: theme.primaryColor,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Recommended for you',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[700],
+                              fontSize: 14,
+                            ),
+                          ),
+                          const Spacer(),
+                          // Add scroll indicators
+                          if (_recommendedItems.isNotEmpty)
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.swipe,
+                                  size: 14,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Swipe',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                              ],
+                            ),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.recommend,
-                          color: theme.primaryColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Recommended:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Stack(
-                            alignment: Alignment.centerLeft,
-                            children: [
-                              Transform.translate(
-                                offset: Offset(
-                                  _recommendationAnimation.value * 100,
-                                  0,
-                                ),
-                                child: Opacity(
-                                  opacity: 1 - _recommendationAnimation.value,
-                                  child: Text(
-                                    _recommendations[_currentRecommendationIndex],
-                                    style: TextStyle(
-                                      color: theme.primaryColor,
-                                      fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: _recommendedItems.isEmpty
+                          ? Center(
+                              child: Text(
+                                'Loading recommendations...',
+                                style: TextStyle(color: Colors.grey[500]),
+                              ),
+                            )
+                          : PageView.builder(
+                              controller: _recommendationPageController,
+                              itemCount: _recommendedItems.length,
+                              physics: const BouncingScrollPhysics(),
+                              itemBuilder: (context, index) {
+                                final item = _recommendedItems[index];
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      // Find if this item is in the cart
+                                      final cartItem = cartProvider.cartItems.firstWhere(
+                                        (cartItem) => cartItem.itemId == item.id,
+                                        orElse: () => CartItem(
+                                          id: '',
+                                          userId: '',
+                                          itemId: item.id,
+                                          quantity: 0,
+                                          item: item,
+                                        ),
+                                      );
+                                      
+                                      if (cartItem.quantity <= 0) {
+                                        cartProvider.addToCart(
+                                          Provider.of<AuthProvider>(context, listen: false).user!.id,
+                                          item,
+                                        );
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('${item.name} added to cart'),
+                                            duration: const Duration(seconds: 2),
+                                            behavior: SnackBarBehavior.floating,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(color: Colors.grey.shade200),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          // Item image
+                                          Hero(
+                                            tag: 'recommendation-${item.id}',
+                                            child: ClipRRect(
+                                              borderRadius: const BorderRadius.only(
+                                                topLeft: Radius.circular(9),
+                                                bottomLeft: Radius.circular(9),
+                                              ),
+                                              child: SizedBox(
+                                                width: 100,
+                                                height: double.infinity,
+                                                child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                                                    ? Image.network(
+                                                        item.imageUrl!,
+                                                        fit: BoxFit.cover,
+                                                        errorBuilder: (context, error, stackTrace) {
+                                                          return Container(
+                                                            color: theme.primaryColor.withOpacity(0.1),
+                                                            child: Center(
+                                                              child: Icon(
+                                                                Icons.fastfood,
+                                                                size: 30,
+                                                                color: theme.primaryColor,
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                      )
+                                                    : Container(
+                                                        color: theme.primaryColor.withOpacity(0.1),
+                                                        child: Center(
+                                                          child: Icon(
+                                                            Icons.fastfood,
+                                                            size: 30,
+                                                            color: theme.primaryColor,
+                                                          ),
+                                                        ),
+                                                      ),
+                                              ),
+                                            ),
+                                          ),
+                                          // Item details
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(12),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    item.name,
+                                                    style: const TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 16,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                  if (item.description != null && item.description!.isNotEmpty)
+                                                    Padding(
+                                                      padding: const EdgeInsets.only(top: 4),
+                                                      child: Text(
+                                                        item.description!,
+                                                        style: TextStyle(
+                                                          color: Colors.grey[600],
+                                                          fontSize: 12,
+                                                        ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ),
+                                                  const SizedBox(height: 4),
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        '₹${item.price.toStringAsFixed(2)}',
+                                                        style: TextStyle(
+                                                          color: theme.primaryColor,
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                        decoration: BoxDecoration(
+                                                          color: theme.primaryColor.withOpacity(0.1),
+                                                          borderRadius: BorderRadius.circular(12),
+                                                        ),
+                                                        child: Text(
+                                                          'Add to Cart',
+                                                          style: TextStyle(
+                                                            color: theme.primaryColor,
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 10,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
-                              Transform.translate(
-                                offset: Offset(
-                                  -100 + _recommendationAnimation.value * 100,
-                                  0,
-                                ),
-                                child: Opacity(
-                                  opacity: _recommendationAnimation.value,
-                                  child: Text(
-                                    _recommendations[(_currentRecommendationIndex + 1) % _recommendations.length],
-                                    style: TextStyle(
-                                      color: theme.primaryColor,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                                );
+                              },
+                            ),
                     ),
-                  );
-                },
+                    // Enhanced page indicator dots with animation
+                    if (_recommendedItems.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            _recommendedItems.length,
+                            (index) => AnimatedBuilder(
+                              animation: _recommendationPageController,
+                              builder: (context, _) {
+                                final currentPage = _recommendationPageController.hasClients
+                                    ? _recommendationPageController.page ?? 0
+                                    : 0;
+                                final isActive = index == currentPage.round();
+                                final distance = (index - currentPage).abs();
+                                final opacity = 1.0 - (distance * 0.3).clamp(0.0, 0.7);
+                                
+                                return Container(
+                                  width: isActive ? 18 : 8,
+                                  height: 8,
+                                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(4),
+                                    color: theme.primaryColor.withOpacity(opacity),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ],
           ),

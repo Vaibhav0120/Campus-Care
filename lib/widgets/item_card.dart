@@ -41,7 +41,7 @@ class ItemCard extends StatelessWidget {
             child: Stack(
               children: [
                 SizedBox(
-                  height: 140,
+                  height: 180, // Changed from 140 to make image larger
                   width: double.infinity,
                   child: item.imageUrl != null && item.imageUrl!.isNotEmpty
                       ? Image.network(
@@ -129,7 +129,7 @@ class ItemCard extends StatelessWidget {
           // Item details with enhanced design
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8), // Reduced from 12 to 8
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -139,7 +139,7 @@ class ItemCard extends StatelessWidget {
                     item.name,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: 14, // Reduced from 16
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -148,14 +148,14 @@ class ItemCard extends StatelessWidget {
                   // Item description
                   if (item.description != null && item.description!.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.only(top: 4),
+                      padding: const EdgeInsets.only(top: 2), // Reduced from 4
                       child: Text(
                         item.description!,
                         style: TextStyle(
                           color: Colors.grey[600],
-                          fontSize: 12,
+                          fontSize: 10, // Reduced from 12
                         ),
-                        maxLines: 2,
+                        maxLines: 1, // Reduced from 2
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
