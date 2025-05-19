@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:campus_care/providers/auth_provider.dart';
 import 'package:campus_care/providers/cart_provider.dart';
-import 'package:campus_care/screens/place_order_screen.dart';
 import 'package:campus_care/widgets/cart_tile.dart';
+import 'package:campus_care/screens/place_order_screen.dart';
 import 'package:lottie/lottie.dart';
 
 class CartScreen extends StatefulWidget {
@@ -57,6 +57,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
     final cartProvider = Provider.of<CartProvider>(context);
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
+    final isDarkMode = theme.brightness == Brightness.dark;
     
     // Responsive breakpoints - FIXED to use only width, not kIsWeb
     final isSmallMobile = size.width < 360;
@@ -106,6 +107,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                 emptyCartTextSize,
                 emptyCartSubtextSize,
                 buttonPadding,
+                isDarkMode,
               ),
       ),
       bottomNavigationBar: _buildBottomBar(
@@ -115,6 +117,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
         isMobile,
         isTablet,
         isDesktop,
+        isDarkMode,
       ),
     );
   }
@@ -130,6 +133,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
     double emptyCartTextSize,
     double emptyCartSubtextSize,
     double buttonPadding,
+    bool isDarkMode,
   ) {
     if (cartProvider.error != null) {
       return Center(
@@ -191,7 +195,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
               style: TextStyle(
                 fontSize: emptyCartTextSize,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
+                color: isDarkMode ? Colors.grey[300] : Colors.grey[700],
               ),
             ),
             const SizedBox(height: 8),
@@ -199,7 +203,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
               'Add some delicious items to your cart',
               style: TextStyle(
                 fontSize: emptyCartSubtextSize,
-                color: Colors.grey[600],
+                color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
               ),
             ),
             const SizedBox(height: 32),
@@ -255,18 +259,20 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
               margin: EdgeInsets.all(isSmallMobile ? 12 : 16),
               padding: EdgeInsets.all(isSmallMobile ? 16 : 24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDarkMode ? theme.cardTheme.color : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withAlpha(
+                      (Colors.grey.alpha * 0.1).toInt()),
                     spreadRadius: 1,
                     blurRadius: 10,
                     offset: const Offset(0, 1),
                   ),
                 ],
                 border: Border.all(
-                  color: const Color(0xFFFEC62B).withOpacity(0.3),
+                  color: const Color(0xFFFEC62B).withAlpha(
+                    (const Color(0xFFFEC62B).alpha * 0.3).toInt()),
                   width: 1,
                 ),
               ),
@@ -297,10 +303,10 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                   Container(
                     padding: EdgeInsets.all(isSmallMobile ? 12 : 16),
                     decoration: BoxDecoration(
-                      color: Colors.grey[50],
+                      color: isDarkMode ? theme.colorScheme.surface : Colors.grey[50],
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Colors.grey[200]!,
+                        color: isDarkMode ? Colors.grey[800]! : Colors.grey[200]!,
                       ),
                     ),
                     child: Row(
@@ -310,7 +316,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                           'Items (${cartProvider.cartItems.length})',
                           style: TextStyle(
                             fontSize: isSmallMobile ? 14 : 16,
-                            color: Colors.grey[700],
+                            color: isDarkMode ? Colors.grey[300] : Colors.grey[700],
                           ),
                         ),
                         Text(
@@ -318,7 +324,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                           style: TextStyle(
                             fontSize: isSmallMobile ? 14 : 16,
                             fontWeight: FontWeight.w500,
-                            color: Colors.grey[800],
+                            color: isDarkMode ? Colors.grey[200] : Colors.grey[800],
                           ),
                         ),
                       ],
@@ -334,10 +340,14 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                   Container(
                     padding: EdgeInsets.all(isSmallMobile ? 12 : 16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFEC62B).withOpacity(0.1),
+                      color: isDarkMode 
+                          ? theme.colorScheme.surface
+                          : const Color(0xFFFEC62B).withAlpha(
+                              (const Color(0xFFFEC62B).alpha * 0.1).toInt()),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: const Color(0xFFFEC62B).withOpacity(0.3),
+                        color: const Color(0xFFFEC62B).withAlpha(
+                          (const Color(0xFFFEC62B).alpha * 0.3).toInt()),
                       ),
                     ),
                     child: Row(
@@ -348,6 +358,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                           style: TextStyle(
                             fontSize: isSmallMobile ? 16 : 18,
                             fontWeight: FontWeight.bold,
+                            color: isDarkMode ? Colors.white : Colors.black87,
                           ),
                         ),
                         Container(
@@ -360,7 +371,8 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFFEC62B).withOpacity(0.3),
+                                color: const Color(0xFFFEC62B).withAlpha(
+                                  (const Color(0xFFFEC62B).alpha * 0.3).toInt()),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -434,6 +446,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
     bool isMobile,
     bool isTablet,
     bool isDesktop,
+    bool isDarkMode,
   ) {
     // Don't show bottom bar for empty cart or desktop layout
     if (cartProvider.cartItems.isEmpty || isDesktop || (isTablet && MediaQuery.of(context).size.width >= 768)) {
@@ -443,10 +456,11 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
     return Container(
       padding: EdgeInsets.all(isSmallMobile ? 12 : 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? theme.cardTheme.color : Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha(
+              (Colors.black.alpha * 0.1).toInt()),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, -2),
@@ -471,7 +485,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                     'Items (${cartProvider.cartItems.length})',
                     style: TextStyle(
                       fontSize: isSmallMobile ? 12 : 14,
-                      color: Colors.grey[600],
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
                   Text(
@@ -479,7 +493,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                     style: TextStyle(
                       fontSize: isSmallMobile ? 14 : 16,
                       fontWeight: FontWeight.w500,
-                      color: Colors.grey[700],
+                      color: isDarkMode ? Colors.grey[300] : Colors.grey[700],
                     ),
                   ),
                 ],
@@ -495,7 +509,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                     'Total:',
                     style: TextStyle(
                       fontSize: isSmallMobile ? 12 : 14,
-                      color: Colors.grey[600],
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
                   Row(

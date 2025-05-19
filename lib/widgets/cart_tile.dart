@@ -15,6 +15,8 @@ class CartTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cartProvider = Provider.of<CartProvider>(context);
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
     
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -33,16 +35,25 @@ class CartTile extends StatelessWidget {
                     ? CachedNetworkImage(
                         imageUrl: cartItem.item.imageUrl!,
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => const Center(
-                          child: CircularProgressIndicator(),
+                        placeholder: (context, url) => Center(
+                          child: CircularProgressIndicator(
+                            color: theme.primaryColor,
+                          ),
                         ),
-                        errorWidget: (context, url, error) => const Center(
-                          child: Icon(Icons.image_not_supported),
+                        errorWidget: (context, url, error) => Center(
+                          child: Icon(
+                            Icons.image_not_supported,
+                            color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                          ),
                         ),
                       )
-                    : Image.asset(
-                        'assets/images/placeholder_food.png',
-                        fit: BoxFit.cover,
+                    : Container(
+                        color: theme.primaryColor.withOpacity(0.1),
+                        child: Icon(
+                          Icons.fastfood,
+                          color: theme.primaryColor,
+                          size: 40,
+                        ),
                       ),
               ),
             ),
@@ -55,9 +66,10 @@ class CartTile extends StatelessWidget {
                 children: [
                   Text(
                     cartItem.item.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -72,7 +84,10 @@ class CartTile extends StatelessWidget {
                   Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.remove),
+                        icon: Icon(
+                          Icons.remove,
+                          color: theme.colorScheme.onSurface,
+                        ),
                         onPressed: () {
                           cartProvider.updateQuantity(
                             cartItem,
@@ -89,18 +104,24 @@ class CartTile extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
+                          border: Border.all(
+                            color: isDarkMode ? Colors.grey[700]! : Colors.grey[400]!,
+                          ),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           '${cartItem.quantity}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.add),
+                        icon: Icon(
+                          Icons.add,
+                          color: theme.colorScheme.onSurface,
+                        ),
                         onPressed: () {
                           cartProvider.updateQuantity(
                             cartItem,
@@ -114,8 +135,9 @@ class CartTile extends StatelessWidget {
                       const Spacer(),
                       Text(
                         '₹${cartItem.totalPrice.toStringAsFixed(2)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                     ],

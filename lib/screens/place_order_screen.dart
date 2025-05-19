@@ -168,6 +168,7 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> with SingleTickerPr
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width > 900;
+    final isDarkMode = theme.brightness == Brightness.dark;
     
     return Scaffold(
       appBar: AppBar(
@@ -219,14 +220,14 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> with SingleTickerPr
               child: SlideTransition(
                 position: _slideAnimation,
                 child: isDesktop
-                    ? _buildDesktopLayout(cartProvider, theme)
-                    : _buildMobileLayout(cartProvider, theme),
+                    ? _buildDesktopLayout(cartProvider, theme, isDarkMode)
+                    : _buildMobileLayout(cartProvider, theme, isDarkMode),
               ),
             ),
     );
   }
 
-  Widget _buildDesktopLayout(CartProvider cartProvider, ThemeData theme) {
+  Widget _buildDesktopLayout(CartProvider cartProvider, ThemeData theme, bool isDarkMode) {
     return Row(
       children: [
         // Order summary (left side)
@@ -426,7 +427,7 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> with SingleTickerPr
             margin: const EdgeInsets.all(24),
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDarkMode ? theme.cardTheme.color : Colors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -461,7 +462,7 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> with SingleTickerPr
                 const SizedBox(height: 24),
                 
                 // Payment options with enhanced design
-                _buildPaymentOptions(theme),
+                _buildPaymentOptions(theme, isDarkMode),
                 
                 const Spacer(),
                 
@@ -517,7 +518,7 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildMobileLayout(CartProvider cartProvider, ThemeData theme) {
+  Widget _buildMobileLayout(CartProvider cartProvider, ThemeData theme, bool isDarkMode) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -668,7 +669,7 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> with SingleTickerPr
             margin: const EdgeInsets.symmetric(vertical: 20),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDarkMode ? theme.cardTheme.color : Colors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -752,7 +753,7 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> with SingleTickerPr
           const SizedBox(height: 16),
           
           // Payment options with enhanced design
-          _buildPaymentOptions(theme),
+          _buildPaymentOptions(theme, isDarkMode),
           
           const SizedBox(height: 32),
           
@@ -805,203 +806,203 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildPaymentOptions(ThemeData theme) {
-    return Column(
-      children: [
-        // Cash option with enhanced design
-        InkWell(
-          onTap: () {
-            setState(() {
-              _selectedPaymentMethod = 'cash';
-            });
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
+Widget _buildPaymentOptions(ThemeData theme, bool isDarkMode) {
+  return Column(
+    children: [
+      // Cash option with enhanced design
+      InkWell(
+        onTap: () {
+          setState(() {
+            _selectedPaymentMethod = 'cash';
+          });
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: _selectedPaymentMethod == 'cash'
+                ? theme.primaryColor.withOpacity(0.1)
+                : isDarkMode ? theme.cardTheme.color : Colors.white,
+            border: Border.all(
               color: _selectedPaymentMethod == 'cash'
-                  ? theme.primaryColor.withOpacity(0.1)
-                  : Colors.white,
-              border: Border.all(
+                  ? theme.primaryColor
+                  : Colors.grey[300]!,
+              width: _selectedPaymentMethod == 'cash' ? 2 : 1,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: _selectedPaymentMethod == 'cash'
+                ? [
+                    BoxShadow(
+                      color: theme.primaryColor.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: _selectedPaymentMethod == 'cash'
+                        ? theme.primaryColor
+                        : Colors.grey[400]!,
+                    width: 2,
+                  ),
+                ),
+                child: _selectedPaymentMethod == 'cash'
+                    ? Center(
+                        child: Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: theme.primaryColor,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Cash on Delivery',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: _selectedPaymentMethod == 'cash'
+                            ? theme.primaryColor
+                            : isDarkMode ? theme.colorScheme.onSurface : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Pay when you receive your order',
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.payments_outlined,
                 color: _selectedPaymentMethod == 'cash'
                     ? theme.primaryColor
-                    : Colors.grey[300]!,
-                width: _selectedPaymentMethod == 'cash' ? 2 : 1,
+                    : isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                size: 28,
               ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: _selectedPaymentMethod == 'cash'
-                  ? [
-                      BoxShadow(
-                        color: theme.primaryColor.withOpacity(0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: _selectedPaymentMethod == 'cash'
-                          ? theme.primaryColor
-                          : Colors.grey[400]!,
-                      width: 2,
-                    ),
-                  ),
-                  child: _selectedPaymentMethod == 'cash'
-                      ? Center(
-                          child: Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: theme.primaryColor,
-                            ),
-                          ),
-                        )
-                      : null,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Cash on Delivery',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: _selectedPaymentMethod == 'cash'
-                              ? theme.primaryColor
-                              : Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Pay when you receive your order',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.payments_outlined,
-                  color: _selectedPaymentMethod == 'cash'
-                      ? theme.primaryColor
-                      : Colors.grey[600],
-                  size: 28,
-                ),
-              ],
-            ),
+            ],
           ),
         ),
-        
-        const SizedBox(height: 16),
-        
-        // UPI option with enhanced design
-        InkWell(
-          onTap: () {
-            setState(() {
-              _selectedPaymentMethod = 'upi';
-            });
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
+      ),
+      
+      const SizedBox(height: 16),
+      
+      // UPI option with enhanced design
+      InkWell(
+        onTap: () {
+          setState(() {
+            _selectedPaymentMethod = 'upi';
+          });
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: _selectedPaymentMethod == 'upi'
+                ? theme.primaryColor.withOpacity(0.1)
+                : isDarkMode ? theme.cardTheme.color : Colors.white,
+            border: Border.all(
               color: _selectedPaymentMethod == 'upi'
-                  ? theme.primaryColor.withOpacity(0.1)
-                  : Colors.white,
-              border: Border.all(
+                  ? theme.primaryColor
+                  : Colors.grey[300]!,
+              width: _selectedPaymentMethod == 'upi' ? 2 : 1,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: _selectedPaymentMethod == 'upi'
+                ? [
+                    BoxShadow(
+                      color: theme.primaryColor.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: _selectedPaymentMethod == 'upi'
+                        ? theme.primaryColor
+                        : Colors.grey[400]!,
+                    width: 2,
+                  ),
+                ),
+                child: _selectedPaymentMethod == 'upi'
+                    ? Center(
+                        child: Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: theme.primaryColor,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'UPI Payment',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: _selectedPaymentMethod == 'upi'
+                            ? theme.primaryColor
+                            : isDarkMode ? theme.colorScheme.onSurface : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Pay using UPI apps like Google Pay, PhonePe',
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.account_balance_wallet_outlined,
                 color: _selectedPaymentMethod == 'upi'
                     ? theme.primaryColor
-                    : Colors.grey[300]!,
-                width: _selectedPaymentMethod == 'upi' ? 2 : 1,
+                    : isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                size: 28,
               ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: _selectedPaymentMethod == 'upi'
-                  ? [
-                      BoxShadow(
-                        color: theme.primaryColor.withOpacity(0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: _selectedPaymentMethod == 'upi'
-                          ? theme.primaryColor
-                          : Colors.grey[400]!,
-                      width: 2,
-                    ),
-                  ),
-                  child: _selectedPaymentMethod == 'upi'
-                      ? Center(
-                          child: Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: theme.primaryColor,
-                            ),
-                          ),
-                        )
-                      : null,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'UPI Payment',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: _selectedPaymentMethod == 'upi'
-                              ? theme.primaryColor
-                              : Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Pay using UPI apps like Google Pay, PhonePe',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.account_balance_wallet_outlined,
-                  color: _selectedPaymentMethod == 'upi'
-                      ? theme.primaryColor
-                      : Colors.grey[600],
-                  size: 28,
-                ),
-              ],
-            ),
+            ],
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 }

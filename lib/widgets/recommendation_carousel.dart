@@ -64,6 +64,7 @@ class _RecommendationCarouselState extends State<RecommendationCarousel> {
   Widget build(BuildContext context) {
     final cartProvider = Provider.of<CartProvider>(context);
     final size = MediaQuery.of(context).size;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     
     // Responsive breakpoints
     final isSmallMobile = size.width < 360;
@@ -86,38 +87,42 @@ class _RecommendationCarouselState extends State<RecommendationCarousel> {
       width: double.infinity,
       height: carouselHeight,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: widget.theme.cardTheme.color,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(
+              (Colors.black.alpha * 0.05).toInt()),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
         border: Border.all(
-          color: Colors.grey[200]!,
+          color: isDarkMode ? widget.theme.dividerTheme.color! : Colors.grey[200]!,
           width: 1,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with enhanced design
+          // Header with enhanced design - Changed background color for dark mode
           Container(
             padding: EdgeInsets.symmetric(
               horizontal: padding, 
               vertical: isSmallMobile ? 6 : 8
             ),
             decoration: BoxDecoration(
-              color: widget.theme.primaryColor.withOpacity(0.05),
+              color: isDarkMode 
+                  ? widget.theme.cardTheme.color // Use card color instead of primary color with opacity
+                  : widget.theme.primaryColor.withAlpha(
+                      (widget.theme.primaryColor.alpha * 0.05).toInt()),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
               ),
               border: Border(
                 bottom: BorderSide(
-                  color: Colors.grey[200]!,
+                  color: isDarkMode ? widget.theme.dividerTheme.color! : Colors.grey[200]!,
                   width: 1,
                 ),
               ),
@@ -134,7 +139,7 @@ class _RecommendationCarouselState extends State<RecommendationCarousel> {
                   'Recommended for you',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
+                    color: isDarkMode ? widget.theme.colorScheme.onSurface : Colors.grey[800],
                     fontSize: headerFontSize,
                   ),
                 ),
@@ -153,14 +158,14 @@ class _RecommendationCarouselState extends State<RecommendationCarousel> {
                             Icon(
                               Icons.swipe,
                               size: isSmallMobile ? 12 : 14,
-                              color: Colors.grey[400],
+                              color: isDarkMode ? Colors.grey[500] : Colors.grey[400],
                             ),
                             SizedBox(width: isSmallMobile ? 2 : 4),
                             Text(
                               'Swipe',
                               style: TextStyle(
                                 fontSize: isSmallMobile ? 10 : 12,
-                                color: Colors.grey[400],
+                                color: isDarkMode ? Colors.grey[500] : Colors.grey[400],
                               ),
                             ),
                           ],
@@ -197,7 +202,7 @@ class _RecommendationCarouselState extends State<RecommendationCarousel> {
                         Text(
                           'Loading recommendations...',
                           style: TextStyle(
-                            color: Colors.grey[500],
+                            color: isDarkMode ? Colors.grey[400] : Colors.grey[500],
                             fontSize: isSmallMobile ? 12 : 14,
                           ),
                         ),
@@ -246,7 +251,13 @@ class _RecommendationCarouselState extends State<RecommendationCarousel> {
                           child: Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey.shade200),
+                              border: Border.all(
+                                color: isDarkMode ? widget.theme.dividerTheme.color! : Colors.grey.shade200,
+                              ),
+                              color: isDarkMode 
+                                  ? widget.theme.cardTheme.color!.withAlpha(
+                                      (widget.theme.cardTheme.color!.alpha * 0.5).toInt()) 
+                                  : Colors.white,
                             ),
                             child: Row(
                               children: [
@@ -264,7 +275,8 @@ class _RecommendationCarouselState extends State<RecommendationCarousel> {
                                       decoration: BoxDecoration(
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.black.withOpacity(0.1),
+                                            color: Colors.black.withAlpha(
+                                              (Colors.black.alpha * 0.1).toInt()),
                                             blurRadius: 4,
                                             offset: const Offset(2, 0),
                                           ),
@@ -276,7 +288,8 @@ class _RecommendationCarouselState extends State<RecommendationCarousel> {
                                               fit: BoxFit.cover,
                                               errorBuilder: (context, error, stackTrace) {
                                                 return Container(
-                                                  color: widget.theme.primaryColor.withOpacity(0.1),
+                                                  color: widget.theme.primaryColor.withAlpha(
+                                                    (widget.theme.primaryColor.alpha * 0.1).toInt()),
                                                   child: Center(
                                                     child: Icon(
                                                       Icons.fastfood,
@@ -288,7 +301,8 @@ class _RecommendationCarouselState extends State<RecommendationCarousel> {
                                               },
                                             )
                                           : Container(
-                                              color: widget.theme.primaryColor.withOpacity(0.1),
+                                              color: widget.theme.primaryColor.withAlpha(
+                                                (widget.theme.primaryColor.alpha * 0.1).toInt()),
                                               child: Center(
                                                 child: Icon(
                                                   Icons.fastfood,
@@ -318,7 +332,7 @@ class _RecommendationCarouselState extends State<RecommendationCarousel> {
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: titleFontSize,
-                                            color: Colors.grey[800],
+                                            color: isDarkMode ? widget.theme.colorScheme.onSurface : Colors.grey[800],
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -331,7 +345,10 @@ class _RecommendationCarouselState extends State<RecommendationCarousel> {
                                             child: Text(
                                               item.description!,
                                               style: TextStyle(
-                                                color: Colors.grey[600],
+                                                color: isDarkMode 
+                                                    ? widget.theme.colorScheme.onSurface.withAlpha(
+                                                        (widget.theme.colorScheme.onSurface.alpha * 0.7).toInt())
+                                                    : Colors.grey[600],
                                                 fontSize: descriptionFontSize,
                                               ),
                                               maxLines: 1,
@@ -358,7 +375,8 @@ class _RecommendationCarouselState extends State<RecommendationCarousel> {
                                                       vertical: isSmallMobile ? 2 : 4,
                                                     ),
                                                     decoration: BoxDecoration(
-                                                      color: widget.theme.primaryColor.withOpacity(0.1),
+                                                      color: widget.theme.primaryColor.withAlpha(
+                                                        (widget.theme.primaryColor.alpha * 0.1).toInt()),
                                                       borderRadius: BorderRadius.circular(8),
                                                     ),
                                                     child: Text(
@@ -443,7 +461,8 @@ class _RecommendationCarouselState extends State<RecommendationCarousel> {
                                                       vertical: isSmallMobile ? 2 : 4,
                                                     ),
                                                     decoration: BoxDecoration(
-                                                      color: widget.theme.primaryColor.withOpacity(0.1),
+                                                      color: widget.theme.primaryColor.withAlpha(
+                                                        (widget.theme.primaryColor.alpha * 0.1).toInt()),
                                                       borderRadius: BorderRadius.circular(8),
                                                     ),
                                                     child: Text(
@@ -552,7 +571,8 @@ class _RecommendationCarouselState extends State<RecommendationCarousel> {
                         margin: EdgeInsets.symmetric(horizontal: isSmallMobile ? 2 : 3),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(isSmallMobile ? 2 : 3),
-                          color: widget.theme.primaryColor.withOpacity(opacity),
+                          color: widget.theme.primaryColor.withAlpha(
+                            (widget.theme.primaryColor.alpha * opacity).toInt()),
                         ),
                       );
                     },

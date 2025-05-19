@@ -132,6 +132,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final size = MediaQuery.of(context).size;
     final isDesktop = kIsWeb || size.width > 900;
     final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
     const primaryColor = Color(0xFFFEC62B);
     
     return Scaffold(
@@ -141,11 +142,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              primaryColor,
-              primaryColor.withAlpha(220),
-              primaryColor.withAlpha(180),
-            ],
+            colors: isDarkMode
+                ? [
+                    theme.scaffoldBackgroundColor,
+                    theme.scaffoldBackgroundColor.withOpacity(0.8),
+                  ]
+                : [
+                    primaryColor,
+                    primaryColor.withAlpha(220),
+                    primaryColor.withAlpha(180),
+                  ],
           ),
         ),
         child: SafeArea(
@@ -165,7 +171,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           width: isDesktop ? 160 : 120,
                           height: isDesktop ? 160 : 120,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: isDarkMode ? theme.cardTheme.color : Colors.white,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
@@ -193,7 +199,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                               style: TextStyle(
                                 fontSize: isDesktop ? 48 : 36,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: isDarkMode ? theme.colorScheme.onSurface : Colors.white,
                                 letterSpacing: 1.2,
                                 shadows: [
                                   Shadow(
@@ -208,10 +214,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
-                                color: Colors.white.withAlpha(40),
+                                color: isDarkMode 
+                                    ? theme.cardTheme.color!.withOpacity(0.3) 
+                                    : Colors.white.withAlpha(40),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: Colors.white.withAlpha(60), 
+                                  color: isDarkMode 
+                                      ? theme.dividerTheme.color!
+                                      : Colors.white.withAlpha(60), 
                                   width: 1
                                 ),
                               ),
@@ -219,7 +229,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                                 'Your Campus Food Delivery',
                                 style: TextStyle(
                                   fontSize: isDesktop ? 20 : 16,
-                                  color: Colors.white,
+                                  color: isDarkMode ? theme.colorScheme.onSurface : Colors.white,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -241,10 +251,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                               ),
                             ),
                             const SizedBox(height: 16),
-                            const Text(
+                            Text(
                               'Loading...',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: isDarkMode ? theme.colorScheme.onSurface : Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -261,11 +271,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                               child: Wrap(
                                 spacing: isDesktop ? 16 : 8,
                                 children: [
-                                  _buildFoodIcon(Icons.local_pizza, theme),
-                                  _buildFoodIcon(Icons.coffee, theme),
-                                  _buildFoodIcon(Icons.fastfood, theme),
-                                  _buildFoodIcon(Icons.local_dining, theme),
-                                  _buildFoodIcon(Icons.icecream, theme),
+                                  _buildFoodIcon(Icons.local_pizza, theme, isDarkMode),
+                                  _buildFoodIcon(Icons.coffee, theme, isDarkMode),
+                                  _buildFoodIcon(Icons.fastfood, theme, isDarkMode),
+                                  _buildFoodIcon(Icons.local_dining, theme, isDarkMode),
+                                  _buildFoodIcon(Icons.icecream, theme, isDarkMode),
                                 ],
                               ),
                             ),
@@ -283,12 +293,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
   }
   
-  Widget _buildFoodIcon(IconData icon, ThemeData theme) {
+  Widget _buildFoodIcon(IconData icon, ThemeData theme, bool isDarkMode) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withAlpha(200),
+        color: isDarkMode ? theme.cardTheme.color!.withOpacity(0.7) : Colors.white.withAlpha(200),
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(

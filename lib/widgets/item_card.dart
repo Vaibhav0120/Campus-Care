@@ -29,6 +29,7 @@ class ItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
     final inCart = cartItem != null && cartItem!.quantity > 0;
     
     // Adjust sizes based on screen dimensions
@@ -45,7 +46,7 @@ class ItemCard extends StatelessWidget {
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.cardTheme.color,
           borderRadius: BorderRadius.circular(borderRadius),
           boxShadow: [
             BoxShadow(
@@ -160,6 +161,7 @@ class ItemCard extends StatelessWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: titleFontSize,
+                        color: theme.colorScheme.onSurface,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -173,7 +175,7 @@ class ItemCard extends StatelessWidget {
                       Text(
                         item.description!,
                         style: TextStyle(
-                          color: Colors.grey[600],
+                          color: isDarkMode ? theme.colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
                           fontSize: descriptionFontSize,
                         ),
                         maxLines: 2,

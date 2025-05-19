@@ -18,6 +18,8 @@ class OrderTile extends StatelessWidget {
   Widget build(BuildContext context) {
     // Fixed button height
     const double buttonHeight = 50.0;
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
     
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -41,9 +43,10 @@ class OrderTile extends StatelessWidget {
                     children: [
                       Text(
                         'Order #${order.id.substring(0, 8)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       Container(
@@ -70,7 +73,7 @@ class OrderTile extends StatelessWidget {
                   Text(
                     'Date: ${DateFormat('MMM dd, yyyy hh:mm a').format(order.createdAt)}',
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: isDarkMode ? theme.colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
                       fontSize: 14,
                     ),
                   ),
@@ -78,11 +81,11 @@ class OrderTile extends StatelessWidget {
                   Text(
                     'Payment Method: ${order.paymentMethod.toUpperCase()}',
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: isDarkMode ? theme.colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
                       fontSize: 14,
                     ),
                   ),
-                  const Divider(),
+                  Divider(color: theme.dividerTheme.color),
                   // Items list
                   Column(
                     mainAxisSize: MainAxisSize.min,
@@ -95,14 +98,18 @@ class OrderTile extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 '${item.name} x ${item.quantity}',
-                                style: const TextStyle(fontSize: 14),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: theme.colorScheme.onSurface,
+                                ),
                               ),
                             ),
                             Text(
                               '₹${item.totalPrice.toStringAsFixed(2)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
+                                color: theme.colorScheme.onSurface,
                               ),
                             ),
                           ],
@@ -110,15 +117,16 @@ class OrderTile extends StatelessWidget {
                       );
                     }).toList(),
                   ),
-                  const Divider(),
+                  Divider(color: theme.dividerTheme.color),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Total:',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       Text(

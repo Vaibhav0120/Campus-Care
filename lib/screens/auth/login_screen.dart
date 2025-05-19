@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:campus_care/providers/auth_provider.dart';
+import 'package:campus_care/providers/theme_provider.dart';
 import 'package:campus_care/screens/home_screen.dart';
 import 'package:campus_care/screens/auth/signup_screen.dart';
 import 'package:campus_care/screens/staff/staff_dashboard.dart';
 import 'package:campus_care/utils/validators.dart';
+import 'package:campus_care/widgets/theme_toggle_button.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
@@ -120,6 +122,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final size = MediaQuery.of(context).size;
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
     
     // Responsive breakpoints - FIXED to use only width, not kIsWeb
     final isSmallMobile = size.width < 360;
@@ -147,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               Expanded(
                 flex: 5,
                 child: Container(
-                  color: const Color(0xFFFEC62B).withOpacity(0.1),
+                  color: isDarkMode ? theme.scaffoldBackgroundColor.withOpacity(0.7) : theme.primaryColor.withOpacity(0.1),
                   child: Center(
                     child: SingleChildScrollView(
                       padding: EdgeInsets.all(horizontalPadding),
@@ -158,13 +162,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           Container(
                             padding: const EdgeInsets.all(30),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFEC62B).withOpacity(0.2),
+                              color: isDarkMode ? theme.primaryColor.withOpacity(0.1) : theme.primaryColor.withOpacity(0.2),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.restaurant_menu,
                               size: logoSize * 1.5,
-                              color: const Color(0xFFFEC62B),
+                              color: theme.primaryColor,
                             ),
                           ),
                           const SizedBox(height: 32),
@@ -175,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             style: TextStyle(
                               fontSize: titleSize * 1.2,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFFFEC62B),
+                              color: theme.primaryColor,
                               letterSpacing: 1.2,
                             ),
                             textAlign: TextAlign.center,
@@ -186,17 +190,17 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFEC62B).withOpacity(0.1),
+                              color: isDarkMode ? theme.primaryColor.withOpacity(0.1) : theme.primaryColor.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(30),
                               border: Border.all(
-                                color: const Color(0xFFFEC62B).withOpacity(0.3),
+                                color: theme.primaryColor.withOpacity(0.3),
                               ),
                             ),
                             child: Text(
                               'Order food from your campus cafeteria',
                               style: TextStyle(
                                 fontSize: taglineSize * 1.2,
-                                color: Colors.grey[800],
+                                color: isDarkMode ? theme.colorScheme.onSurface : Colors.grey[800],
                                 fontWeight: FontWeight.w500,
                               ),
                               textAlign: TextAlign.center,
@@ -214,16 +218,22 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 icon: Icons.restaurant,
                                 title: 'Campus Menu',
                                 description: 'Browse daily specials and regular items',
+                                isDarkMode: isDarkMode,
+                                theme: theme,
                               ),
                               _buildFeatureCard(
                                 icon: Icons.delivery_dining,
                                 title: 'Quick Pickup',
                                 description: 'Skip the line with pre-orders',
+                                isDarkMode: isDarkMode,
+                                theme: theme,
                               ),
                               _buildFeatureCard(
                                 icon: Icons.payments_outlined,
                                 title: 'Easy Payments',
                                 description: 'Pay with UPI or cash on delivery',
+                                isDarkMode: isDarkMode,
+                                theme: theme,
                               ),
                             ],
                           ),
@@ -237,26 +247,46 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               // Right side - Login form (1/2 of screen)
               Expanded(
                 flex: 5,
-                child: Center(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.all(horizontalPadding),
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 500),
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: SlideTransition(
-                          position: _slideAnimation,
-                          child: _buildLoginForm(
-                            authProvider: authProvider,
-                            headerSize: headerSize,
-                            buttonHeight: buttonHeight,
-                            horizontalPadding: horizontalPadding,
-                            verticalPadding: verticalPadding,
+                child: Stack(
+                  children: [
+                    Center(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.all(horizontalPadding),
+                        child: Container(
+                          constraints: const BoxConstraints(maxWidth: 500),
+                          child: FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: SlideTransition(
+                              position: _slideAnimation,
+                              child: _buildLoginForm(
+                                authProvider: authProvider,
+                                headerSize: headerSize,
+                                buttonHeight: buttonHeight,
+                                horizontalPadding: horizontalPadding,
+                                verticalPadding: verticalPadding,
+                                isDarkMode: isDarkMode,
+                                theme: theme,
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
+                    
+                    // Theme toggle button in the top right corner
+                    const Positioned(
+                      top: 16,
+                      right: 16,
+                      child: Card(
+                        elevation: 4,
+                        shape: CircleBorder(),
+                        child: Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: ThemeToggleButton(showLabel: false),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -268,86 +298,106 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     // Mobile and tablet layout (vertical)
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(horizontalPadding),
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: isTablet ? 600 : double.infinity,
-              ),
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Logo with enhanced design
-                      Center(
-                        child: Container(
-                          padding: EdgeInsets.all(isSmallMobile ? 15 : 20),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFEC62B).withOpacity(0.1),
-                            shape: BoxShape.circle,
+        child: Stack(
+          children: [
+            Center(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(horizontalPadding),
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxWidth: isTablet ? 600 : double.infinity,
+                  ),
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Logo with enhanced design
+                          Center(
+                            child: Container(
+                              padding: EdgeInsets.all(isSmallMobile ? 15 : 20),
+                              decoration: BoxDecoration(
+                                color: isDarkMode ? theme.primaryColor.withOpacity(0.1) : theme.primaryColor.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.restaurant_menu,
+                                size: logoSize,
+                                color: theme.primaryColor,
+                              ),
+                            ),
                           ),
-                          child: Icon(
-                            Icons.restaurant_menu,
-                            size: logoSize,
-                            color: const Color(0xFFFEC62B),
+                          SizedBox(height: isSmallMobile ? 16 : 24),
+                          
+                          // App Name with enhanced typography
+                          Text(
+                            'Campus Care',
+                            style: TextStyle(
+                              fontSize: titleSize,
+                              fontWeight: FontWeight.bold,
+                              color: theme.primaryColor,
+                              letterSpacing: 1.2,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                        ),
-                      ),
-                      SizedBox(height: isSmallMobile ? 16 : 24),
-                      
-                      // App Name with enhanced typography
-                      Text(
-                        'Campus Care',
-                        style: TextStyle(
-                          fontSize: titleSize,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFFFEC62B),
-                          letterSpacing: 1.2,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: isSmallMobile ? 4 : 8),
-                      
-                      // Tagline with enhanced design
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isSmallMobile ? 12 : 16,
-                          vertical: isSmallMobile ? 6 : 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFEC62B).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          'Order food from your campus cafeteria',
-                          style: TextStyle(
-                            fontSize: taglineSize,
-                            color: Colors.grey[800],
+                          SizedBox(height: isSmallMobile ? 4 : 8),
+                          
+                          // Tagline with enhanced design
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isSmallMobile ? 12 : 16,
+                              vertical: isSmallMobile ? 6 : 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDarkMode ? theme.primaryColor.withOpacity(0.1) : theme.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'Order food from your campus cafeteria',
+                              style: TextStyle(
+                                fontSize: taglineSize,
+                                color: isDarkMode ? theme.colorScheme.onSurface : Colors.grey[800],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
-                          textAlign: TextAlign.center,
-                        ),
+                          SizedBox(height: isSmallMobile ? 32 : isTablet ? 64 : 48),
+                          
+                          // Login Form
+                          _buildLoginForm(
+                            authProvider: authProvider,
+                            headerSize: headerSize,
+                            buttonHeight: buttonHeight,
+                            horizontalPadding: horizontalPadding,
+                            verticalPadding: verticalPadding,
+                            isDarkMode: isDarkMode,
+                            theme: theme,
+                          ),
+                        ],
                       ),
-                      SizedBox(height: isSmallMobile ? 32 : isTablet ? 64 : 48),
-                      
-                      // Login Form
-                      _buildLoginForm(
-                        authProvider: authProvider,
-                        headerSize: headerSize,
-                        buttonHeight: buttonHeight,
-                        horizontalPadding: horizontalPadding,
-                        verticalPadding: verticalPadding,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
+            
+            // Theme toggle button in the top right corner
+            const Positioned(
+              top: 16,
+              right: 16,
+              child: Card(
+                elevation: 4,
+                shape: CircleBorder(),
+                child: Padding(
+                  padding: EdgeInsets.all(4.0),
+                  child: ThemeToggleButton(showLabel: false),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -357,12 +407,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     required IconData icon,
     required String title,
     required String description,
+    required bool isDarkMode,
+    required ThemeData theme,
   }) {
     return Container(
       width: 220,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -378,14 +430,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           Icon(
             icon,
             size: 48,
-            color: const Color(0xFFFEC62B),
+            color: theme.primaryColor,
           ),
           const SizedBox(height: 12),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
@@ -393,7 +446,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             description,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[600],
+              color: isDarkMode ? theme.colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
             ),
             textAlign: TextAlign.center,
           ),
@@ -408,6 +461,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     required double buttonHeight,
     required double horizontalPadding,
     required double verticalPadding,
+    required bool isDarkMode,
+    required ThemeData theme,
   }) {
     return Card(
       elevation: 8,
@@ -428,7 +483,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: BorderSide(
-                      color: Colors.grey[200]!,
+                      color: isDarkMode ? theme.dividerTheme.color! : Colors.grey[200]!,
                       width: 1,
                     ),
                   ),
@@ -441,7 +496,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       style: TextStyle(
                         fontSize: headerSize,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFFFEC62B),
+                        color: theme.primaryColor,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -449,7 +504,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       'Login to your account',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: isDarkMode ? theme.colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
                       ),
                     ),
                   ],
@@ -463,15 +518,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 decoration: InputDecoration(
                   labelText: 'Email',
                   hintText: 'Enter your email',
-                  prefixIcon: const Icon(
+                  prefixIcon: Icon(
                     Icons.email_outlined,
-                    color: Color(0xFFFEC62B),
+                    color: theme.primaryColor,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   filled: true,
-                  fillColor: Colors.grey[50],
+                  fillColor: isDarkMode ? theme.inputDecorationTheme.fillColor : Colors.grey[50],
                   contentPadding: const EdgeInsets.symmetric(
                     vertical: 16,
                     horizontal: 16,
@@ -480,6 +535,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
                 validator: Validators.validateEmail,
+                style: TextStyle(color: theme.colorScheme.onSurface),
               ),
               const SizedBox(height: 16),
               
@@ -489,15 +545,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 decoration: InputDecoration(
                   labelText: 'Password',
                   hintText: 'Enter your password',
-                  prefixIcon: const Icon(
+                  prefixIcon: Icon(
                     Icons.lock_outline,
-                    color: Color(0xFFFEC62B),
+                    color: theme.primaryColor,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   filled: true,
-                  fillColor: Colors.grey[50],
+                  fillColor: isDarkMode ? theme.inputDecorationTheme.fillColor : Colors.grey[50],
                   contentPadding: const EdgeInsets.symmetric(
                     vertical: 16,
                     horizontal: 16,
@@ -507,7 +563,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       _obscurePassword
                           ? Icons.visibility_outlined
                           : Icons.visibility_off_outlined,
-                      color: Colors.grey[600],
+                      color: isDarkMode ? theme.colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
                     ),
                     onPressed: () {
                       setState(() {
@@ -520,6 +576,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: (_) => _login(),
                 validator: Validators.validatePassword,
+                style: TextStyle(color: theme.colorScheme.onSurface),
               ),
               SizedBox(height: verticalPadding),
               
@@ -531,22 +588,22 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     horizontal: 16,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.red[50],
+                    color: isDarkMode ? Colors.red.withOpacity(0.2) : Colors.red[50],
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red[200]!),
+                    border: Border.all(color: isDarkMode ? Colors.red[700]! : Colors.red[200]!),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.error_outline,
-                        color: Colors.red[700],
+                        color: isDarkMode ? Colors.red[300] : Colors.red[700],
                         size: 20,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           authProvider.error!,
-                          style: TextStyle(color: Colors.red[700]),
+                          style: TextStyle(color: isDarkMode ? Colors.red[300] : Colors.red[700]),
                         ),
                       ),
                     ],
@@ -564,7 +621,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    backgroundColor: const Color(0xFFFEC62B),
+                    backgroundColor: theme.primaryColor,
                     foregroundColor: Colors.black87,
                     elevation: 2,
                   ),
@@ -593,7 +650,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 children: [
                   Expanded(
                     child: Divider(
-                      color: Colors.grey[300],
+                      color: isDarkMode ? theme.dividerTheme.color : Colors.grey[300],
                       thickness: 1,
                     ),
                   ),
@@ -601,20 +658,20 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: isDarkMode ? theme.cardTheme.color!.withOpacity(0.3) : Colors.grey[100],
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       'OR',
                       style: TextStyle(
-                        color: Colors.grey[600],
+                        color: isDarkMode ? theme.colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                   Expanded(
                     child: Divider(
-                      color: Colors.grey[300],
+                      color: isDarkMode ? theme.dividerTheme.color : Colors.grey[300],
                       thickness: 1,
                     ),
                   ),
@@ -633,7 +690,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           width: 18,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.grey[600],
+                            color: isDarkMode ? theme.colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
                           ),
                         )
                       : const FaIcon(
@@ -645,8 +702,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    side: BorderSide(color: Colors.grey[300]!),
-                    foregroundColor: const Color(0xFFFEC62B),
+                    side: BorderSide(color: isDarkMode ? theme.dividerTheme.color! : Colors.grey[300]!),
+                    foregroundColor: theme.primaryColor,
                   ),
                 ),
               ),
@@ -658,7 +715,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 children: [
                   Text(
                     'Don\'t have an account?',
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: TextStyle(color: isDarkMode ? theme.colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600]),
                   ),
                   TextButton(
                     onPressed: () {
@@ -668,11 +725,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ),
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       'Sign Up',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFFFEC62B),
+                        color: theme.primaryColor,
                       ),
                     ),
                   ),

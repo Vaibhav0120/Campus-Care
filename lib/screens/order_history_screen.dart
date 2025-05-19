@@ -4,6 +4,7 @@ import 'package:campus_care/models/order_model.dart';
 import 'package:campus_care/providers/auth_provider.dart';
 import 'package:campus_care/providers/order_provider.dart';
 import 'package:campus_care/widgets/order_tile.dart';
+import 'package:campus_care/widgets/theme_toggle_button.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({Key? key}) : super(key: key);
@@ -38,24 +39,29 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
     
     return Scaffold(
       appBar: AppBar(
         title: const Text('Order History'),
+        actions: const [
+          ThemeToggleButton(),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
             Tab(text: 'Pending'),
             Tab(text: 'Completed'),
           ],
-          indicatorColor: Colors.black87, // Changed to black
-          labelColor: Colors.black87, // Changed to black
-          unselectedLabelColor: Colors.black54, // Lighter black for unselected
-          labelStyle: const TextStyle( // Added style for selected tab
+          indicatorColor: theme.primaryColor,
+          labelColor: isDarkMode ? theme.primaryColor : Colors.black87,
+          unselectedLabelColor: isDarkMode ? Colors.grey[400] : Colors.black54,
+          labelStyle: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
-          unselectedLabelStyle: const TextStyle( // Added style for unselected tab
+          unselectedLabelStyle: const TextStyle(
             fontWeight: FontWeight.normal,
             fontSize: 16,
           ),
@@ -75,12 +81,12 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
                   Icon(
                     Icons.error_outline,
                     size: 64,
-                    color: Colors.red[300],
+                    color: theme.colorScheme.error,
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Error: ${orderProvider.error}',
-                    style: TextStyle(color: Colors.red[700]),
+                    style: TextStyle(color: theme.colorScheme.error),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -105,6 +111,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
                 orderProvider.pendingOrders,
                 'No pending orders',
                 true,
+                isDarkMode,
+                theme,
               ),
               
               // Completed Orders Tab
@@ -112,6 +120,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
                 orderProvider.completedOrders,
                 'No completed orders',
                 false,
+                isDarkMode,
+                theme,
               ),
             ],
           );
@@ -120,7 +130,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
     );
   }
   
-  Widget _buildOrdersList(List<OrderModel> orders, String emptyMessage, bool isPending) {
+  Widget _buildOrdersList(List<OrderModel> orders, String emptyMessage, bool isPending, bool isDarkMode, ThemeData theme) {
     if (orders.isEmpty) {
       return Center(
         child: Column(
@@ -129,14 +139,14 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
             Icon(
               isPending ? Icons.pending_actions : Icons.check_circle_outline,
               size: 64,
-              color: Colors.grey[400],
+              color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
             ),
             const SizedBox(height: 16),
             Text(
               emptyMessage,
               style: TextStyle(
                 fontSize: 18,
-                color: Colors.grey[600],
+                color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -183,6 +193,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
   }
   
   void _showCancelDialog(OrderModel order) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

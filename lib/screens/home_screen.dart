@@ -11,6 +11,7 @@ import 'package:campus_care/screens/cart_screen.dart';
 import 'package:campus_care/widgets/recommendation_carousel.dart';
 import 'package:campus_care/models/item_model.dart';
 import 'package:campus_care/screens/order_history_screen.dart';
+import 'package:campus_care/widgets/theme_toggle_button.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -133,6 +134,7 @@ class _HomeScreenState extends State<HomeScreen>
     final itemProvider = Provider.of<ItemProvider>(context);
     final cartProvider = Provider.of<CartProvider>(context);
     final size = MediaQuery.of(context).size;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     // Responsive breakpoints
     final isSmallMobile = size.width < 360;
@@ -190,9 +192,10 @@ class _HomeScreenState extends State<HomeScreen>
               cardAspectRatio,
               gridSpacing,
               contentPadding,
-              theme)
+              theme,
+              isDarkMode)
           : _buildUnauthenticatedContent(
-              isSmallMobile, isMobile, isTablet, isDesktop, theme),
+              isSmallMobile, isMobile, isTablet, isDesktop, theme, isDarkMode),
     );
   }
 
@@ -207,7 +210,8 @@ class _HomeScreenState extends State<HomeScreen>
       double cardAspectRatio,
       double gridSpacing,
       double contentPadding,
-      ThemeData theme) {
+      ThemeData theme,
+      bool isDarkMode) {
     if (itemProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -269,14 +273,14 @@ class _HomeScreenState extends State<HomeScreen>
             Icon(
               Icons.no_food,
               size: isSmallMobile ? 48 : 64,
-              color: Colors.grey[400],
+              color: isDarkMode ? Colors.grey[400] : Colors.grey[400],
             ),
             const SizedBox(height: 16),
             Text(
               'No items available',
               style: TextStyle(
                 fontSize: isSmallMobile ? 16 : 18,
-                color: Colors.grey[600],
+                color: isDarkMode ? Colors.grey[300] : Colors.grey[600],
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -285,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen>
               'Check back later for menu updates',
               style: TextStyle(
                 fontSize: isSmallMobile ? 12 : 14,
-                color: Colors.grey[500],
+                color: isDarkMode ? Colors.grey[400] : Colors.grey[500],
               ),
             ),
           ],
@@ -311,6 +315,9 @@ class _HomeScreenState extends State<HomeScreen>
             elevation: 0,
             forceElevated: innerBoxIsScrolled,
             actions: [
+              // Theme toggle button
+              const ThemeToggleButton(),
+              
               // History button
               if (Provider.of<AuthProvider>(context).isAuthenticated)
                 IconButton(
@@ -386,26 +393,15 @@ class _HomeScreenState extends State<HomeScreen>
               minHeight: isSmallMobile ? 70 : 90,
               maxHeight: isSmallMobile ? 70 : 90,
               child: Container(
-                color: theme
-                    .scaffoldBackgroundColor, // Changed to match scaffold background
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: theme.primaryColor.withOpacity(0.1),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
+                color: isDarkMode ? theme.appBarTheme.backgroundColor : theme.scaffoldBackgroundColor,
+                child: Padding(
                   padding: EdgeInsets.all(isSmallMobile ? 12 : 16),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
                     height: isSmallMobile ? 40 : 50,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDarkMode ? theme.inputDecorationTheme.fillColor : Colors.white,
                       borderRadius: BorderRadius.circular(
                           _searchQuery.isNotEmpty ? 16 : 12),
                       boxShadow: [
@@ -420,7 +416,7 @@ class _HomeScreenState extends State<HomeScreen>
                       border: Border.all(
                         color: _searchQuery.isNotEmpty
                             ? theme.primaryColor.withOpacity(0.5)
-                            : Colors.grey[200]!,
+                            : isDarkMode ? Colors.grey[700]! : Colors.grey[200]!,
                         width: _searchQuery.isNotEmpty ? 1.5 : 1,
                       ),
                     ),
@@ -430,6 +426,7 @@ class _HomeScreenState extends State<HomeScreen>
                         hintText: 'Search for food items...',
                         hintStyle: TextStyle(
                           fontSize: isSmallMobile ? 12 : 14,
+                          color: isDarkMode ? Colors.grey[400] : Colors.grey[500],
                         ),
                         prefixIcon: AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
@@ -438,7 +435,7 @@ class _HomeScreenState extends State<HomeScreen>
                             size: isSmallMobile ? 18 : 24,
                             color: _searchQuery.isNotEmpty
                                 ? theme.primaryColor
-                                : Colors.grey[400],
+                                : isDarkMode ? Colors.grey[400] : Colors.grey[400],
                           ),
                         ),
                         suffixIcon: _searchQuery.isNotEmpty
@@ -452,6 +449,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       icon: Icon(
                                         Icons.clear,
                                         size: isSmallMobile ? 18 : 24,
+                                        color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                                       ),
                                       onPressed: () {
                                         setState(() {
@@ -465,7 +463,7 @@ class _HomeScreenState extends State<HomeScreen>
                               )
                             : null,
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: isDarkMode ? theme.inputDecorationTheme.fillColor : Colors.white,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -485,6 +483,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                       style: TextStyle(
                         fontSize: isSmallMobile ? 12 : 14,
+                        color: isDarkMode ? Colors.white : Colors.black87,
                       ),
                       onChanged: (value) {
                         setState(() {
@@ -527,7 +526,7 @@ class _HomeScreenState extends State<HomeScreen>
                     Text(
                       'Found ${filteredItems.length} results for "$_searchQuery"',
                       style: TextStyle(
-                        color: Colors.grey[600],
+                        color: isDarkMode ? Colors.grey[300] : Colors.grey[600],
                         fontWeight: FontWeight.w500,
                         fontSize: isSmallMobile ? 12 : 14,
                       ),
@@ -547,14 +546,14 @@ class _HomeScreenState extends State<HomeScreen>
                         Icon(
                           Icons.search_off,
                           size: isSmallMobile ? 48 : 64,
-                          color: Colors.grey[400],
+                          color: isDarkMode ? Colors.grey[500] : Colors.grey[400],
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'No items found',
                           style: TextStyle(
                             fontSize: isSmallMobile ? 16 : 18,
-                            color: Colors.grey[600],
+                            color: isDarkMode ? Colors.grey[300] : Colors.grey[600],
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -563,7 +562,7 @@ class _HomeScreenState extends State<HomeScreen>
                           'Try a different search term',
                           style: TextStyle(
                             fontSize: isSmallMobile ? 12 : 14,
-                            color: Colors.grey[500],
+                            color: isDarkMode ? Colors.grey[400] : Colors.grey[500],
                           ),
                         ),
                       ],
@@ -637,16 +636,21 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildUnauthenticatedContent(bool isSmallMobile, bool isMobile,
-      bool isTablet, bool isDesktop, ThemeData theme) {
+      bool isTablet, bool isDesktop, ThemeData theme, bool isDarkMode) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            theme.primaryColor.withOpacity(0.8),
-            theme.primaryColor.withOpacity(0.6),
-          ],
+          colors: isDarkMode
+              ? [
+                  theme.scaffoldBackgroundColor,
+                  theme.scaffoldBackgroundColor.withOpacity(0.8),
+                ]
+              : [
+                  theme.primaryColor.withOpacity(0.8),
+                  theme.primaryColor.withOpacity(0.6),
+                ],
         ),
       ),
       child: Center(
@@ -689,6 +693,7 @@ class _HomeScreenState extends State<HomeScreen>
                             ? 28
                             : 24,
                     fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -701,11 +706,11 @@ class _HomeScreenState extends State<HomeScreen>
                         : isTablet
                             ? 18
                             : 16,
-                    color: Colors.grey,
+                    color: isDarkMode ? Colors.grey[300] : Colors.grey[600],
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: isSmallMobile ? 24 : 32),
+                SizedBox(height: isSmallMobile ? 16 : 24),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).push(
