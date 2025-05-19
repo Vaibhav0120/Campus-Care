@@ -1,4 +1,3 @@
-import 'package:campus_care/models/cart_item.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart' as provider_pkg;
 import 'package:supabase_flutter/supabase_flutter.dart';

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:campus_care/providers/auth_provider.dart';
-import 'package:campus_care/providers/theme_provider.dart';
 import 'package:campus_care/screens/home_screen.dart';
 import 'package:campus_care/screens/auth/signup_screen.dart';
 import 'package:campus_care/screens/staff/staff_dashboard.dart';

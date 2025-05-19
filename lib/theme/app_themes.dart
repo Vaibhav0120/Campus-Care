@@ -61,7 +61,7 @@ class AppThemes {
         fontFamily: 'Poppins',
       ),
     ),
-    tabBarTheme: const TabBarTheme(
+    tabBarTheme: const TabBarThemeData(
       labelColor: Colors.black87,
       unselectedLabelColor: Colors.black54,
       indicatorColor: primaryColor,
@@ -186,7 +186,7 @@ class AppThemes {
         ),
       ),
     ),
-    tabBarTheme: TabBarTheme(
+    tabBarTheme: TabBarThemeData(
       labelColor: primaryColor,
       unselectedLabelColor: Colors.grey[400],
       indicatorColor: primaryColor,
