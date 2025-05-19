@@ -1,3 +1,4 @@
+import 'package:campus_care/models/cart_item.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart' as provider_pkg;
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,6 +11,7 @@ import 'package:campus_care/widgets/order_tile.dart';
 import 'package:campus_care/config/supabase_config.dart';
 import 'package:campus_care/screens/staff/staff_order_history_screen.dart';
 import 'package:campus_care/screens/staff/analytics_screen.dart';
+import 'package:campus_care/widgets/theme_toggle_button.dart';
 
 class StaffDashboard extends StatefulWidget {
   const StaffDashboard({Key? key}) : super(key: key);
@@ -187,6 +189,8 @@ class _StaffDashboardState extends State<StaffDashboard>
     const primaryColor = Color(0xFFFEC62B); // Match user home screen color
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 900;
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
 
     if (!authProvider.isAuthenticated || !authProvider.isStaff) {
       return Scaffold(
@@ -205,6 +209,7 @@ class _StaffDashboardState extends State<StaffDashboard>
             child: Card(
               margin: const EdgeInsets.all(24),
               elevation: 8,
+              color: theme.cardTheme.color,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -219,20 +224,21 @@ class _StaffDashboardState extends State<StaffDashboard>
                       color: primaryColor,
                     ),
                     const SizedBox(height: 24),
-                    const Text(
+                    Text(
                       'Staff Access Required',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
                       ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'You need to be logged in as staff to access this page',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.grey,
+                        color: isDarkMode ? Colors.grey[400] : Colors.grey,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -281,6 +287,8 @@ class _StaffDashboardState extends State<StaffDashboard>
         ),
         elevation: 0,
         actions: [
+          // Theme toggle button
+          const ThemeToggleButton(),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
@@ -294,27 +302,25 @@ class _StaffDashboardState extends State<StaffDashboard>
         ],
       ),
       body: isLargeScreen
-          ? _buildLargeScreenLayout(primaryColor)
-          : _buildSmallScreenLayout(primaryColor),
+          ? _buildLargeScreenLayout(primaryColor, isDarkMode, theme)
+          : _buildSmallScreenLayout(primaryColor, isDarkMode, theme),
     );
   }
 
-  Widget _buildLargeScreenLayout(Color primaryColor) {
+  Widget _buildLargeScreenLayout(Color primaryColor, bool isDarkMode, ThemeData theme) {
     return Row(
       children: [
         // Side navigation
         Container(
           width: 220,
-          color: Colors.white,
+          color: isDarkMode ? theme.cardTheme.color : Colors.white,
           child: Column(
             children: [
               const SizedBox(height: 16),
-              _buildNavItem(
-                  0, 'Pending Orders', Icons.pending_actions, primaryColor),
-              _buildNavItem(1, 'Order History', Icons.history, primaryColor),
-              _buildNavItem(2, 'Analytics', Icons.analytics, primaryColor),
-              _buildNavItem(
-                  3, 'Manage Menu', Icons.restaurant_menu, primaryColor),
+              _buildNavItem(0, 'Pending Orders', Icons.pending_actions, primaryColor, isDarkMode, theme),
+              _buildNavItem(1, 'Order History', Icons.history, primaryColor, isDarkMode, theme),
+              _buildNavItem(2, 'Analytics', Icons.analytics, primaryColor, isDarkMode, theme),
+              _buildNavItem(3, 'Manage Menu', Icons.restaurant_menu, primaryColor, isDarkMode, theme),
               const Spacer(),
               Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -331,12 +337,13 @@ class _StaffDashboardState extends State<StaffDashboard>
                         color: primaryColor,
                       ),
                       const SizedBox(width: 8),
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           'Need help? Contact support',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -352,7 +359,7 @@ class _StaffDashboardState extends State<StaffDashboard>
         VerticalDivider(
           width: 1,
           thickness: 1,
-          color: Colors.grey[300],
+          color: isDarkMode ? Colors.grey[800] : Colors.grey[300],
         ),
 
         // Content area
@@ -361,7 +368,7 @@ class _StaffDashboardState extends State<StaffDashboard>
             controller: _tabController,
             physics: const NeverScrollableScrollPhysics(), // Disable swiping
             children: [
-              _buildPendingOrdersTab(),
+              _buildPendingOrdersTab(isDarkMode, theme),
               const StaffOrderHistoryScreen(),
               const AnalyticsScreen(),
               const ManageItemsScreen(),
@@ -372,7 +379,7 @@ class _StaffDashboardState extends State<StaffDashboard>
     );
   }
 
-  Widget _buildSmallScreenLayout(Color primaryColor) {
+  Widget _buildSmallScreenLayout(Color primaryColor, bool isDarkMode, ThemeData theme) {
     return Column(
       children: [
         Container(
@@ -428,7 +435,7 @@ class _StaffDashboardState extends State<StaffDashboard>
           child: TabBarView(
             controller: _tabController,
             children: [
-              _buildPendingOrdersTab(),
+              _buildPendingOrdersTab(isDarkMode, theme),
               const StaffOrderHistoryScreen(),
               const AnalyticsScreen(),
               const ManageItemsScreen(),
@@ -439,8 +446,7 @@ class _StaffDashboardState extends State<StaffDashboard>
     );
   }
 
-  Widget _buildNavItem(
-      int index, String title, IconData icon, Color primaryColor) {
+  Widget _buildNavItem(int index, String title, IconData icon, Color primaryColor, bool isDarkMode, ThemeData theme) {
     final isSelected = _tabController.index == index;
 
     return InkWell(
@@ -467,16 +473,16 @@ class _StaffDashboardState extends State<StaffDashboard>
             Icon(
               icon,
               color: isSelected
-                  ? Colors.black
-                  : Colors.grey[600], // Changed to black when selected
+                  ? isDarkMode ? Colors.white : Colors.black
+                  : isDarkMode ? Colors.grey[400] : Colors.grey[600],
             ),
             const SizedBox(width: 16),
             Text(
               title,
               style: TextStyle(
                 color: isSelected
-                    ? Colors.black
-                    : Colors.grey[800], // Changed to black when selected
+                    ? isDarkMode ? Colors.white : Colors.black
+                    : isDarkMode ? Colors.grey[400] : Colors.grey[800],
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -486,7 +492,7 @@ class _StaffDashboardState extends State<StaffDashboard>
     );
   }
 
-  Widget _buildPendingOrdersTab() {
+  Widget _buildPendingOrdersTab(bool isDarkMode, ThemeData theme) {
     const primaryColor = Color(0xFFFEC62B); // Match user home screen color
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 900;
@@ -534,7 +540,7 @@ class _StaffDashboardState extends State<StaffDashboard>
             Icon(
               Icons.receipt_long,
               size: 80,
-              color: Colors.grey.shade400,
+              color: isDarkMode ? Colors.grey[700] : Colors.grey[400],
             ),
             const SizedBox(height: 24),
             Text(
@@ -542,7 +548,7 @@ class _StaffDashboardState extends State<StaffDashboard>
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey.shade600,
+                color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
               ),
             ),
             const SizedBox(height: 16),
@@ -550,7 +556,7 @@ class _StaffDashboardState extends State<StaffDashboard>
               'New orders will appear here automatically',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.shade500,
+                color: isDarkMode ? Colors.grey[500] : Colors.grey[500],
               ),
             ),
             const SizedBox(height: 32),
@@ -577,13 +583,13 @@ class _StaffDashboardState extends State<StaffDashboard>
       onRefresh: _loadPendingOrders,
       color: primaryColor,
       child: isLargeScreen
-          ? _buildLargeScreenPendingOrders()
-          : _buildSmallScreenPendingOrders(),
+          ? _buildLargeScreenPendingOrders(isDarkMode, theme)
+          : _buildSmallScreenPendingOrders(isDarkMode, theme),
     );
   }
 
-  Widget _buildLargeScreenPendingOrders() {
-    return Padding(
+  Widget _buildLargeScreenPendingOrders(bool isDarkMode, ThemeData theme) {
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -591,43 +597,44 @@ class _StaffDashboardState extends State<StaffDashboard>
           // Header
           Text(
             'Pending Orders (${_pendingOrders.length})',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 16),
 
           // Orders grid - using a fixed height for each item
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 1.2, // More square-like ratio
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-              ),
-              itemCount: _pendingOrders.length,
-              itemBuilder: (context, index) {
-                final order = _pendingOrders[index];
-                // Fixed height container for each order
-                return SizedBox(
-                  height: 400, // Fixed height
-                  child: OrderTile(
-                    order: order,
-                    isStaff: true,
-                    onMarkCompleted: () => _markOrderAsCompleted(order.id),
-                  ),
-                );
-              },
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 1.2, // More square-like ratio
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
             ),
+            itemCount: _pendingOrders.length,
+            itemBuilder: (context, index) {
+              final order = _pendingOrders[index];
+              // Fixed height container for each order
+              return SizedBox(
+                height: 400, // Fixed height
+                child: OrderTile(
+                  order: order,
+                  isStaff: true,
+                  onMarkCompleted: () => _markOrderAsCompleted(order.id),
+                ),
+              );
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSmallScreenPendingOrders() {
+  Widget _buildSmallScreenPendingOrders(bool isDarkMode, ThemeData theme) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: _pendingOrders.length,

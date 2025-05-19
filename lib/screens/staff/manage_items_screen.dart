@@ -55,6 +55,8 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
     final screenSize = MediaQuery.of(context).size;
     final isLargeScreen = screenSize.width > 900;
     final dialogWidth = isLargeScreen ? 500.0 : screenSize.width * 0.9;
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
 
     await showDialog(
       context: context,
@@ -64,6 +66,7 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
+          backgroundColor: theme.cardTheme.color,
           child: Container(
             width: dialogWidth,
             constraints: BoxConstraints(
@@ -82,9 +85,10 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                       // Dialog title
                       Text(
                         item == null ? 'Add New Item' : 'Edit Item',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -97,10 +101,10 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                               height: 200,
                               width: 200,
                               decoration: BoxDecoration(
-                                color: Colors.grey[200],
+                                color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: Colors.grey[300]!,
+                                  color: isDarkMode ? Colors.grey[700]! : Colors.grey[300]!,
                                   width: 2,
                                 ),
                               ),
@@ -123,7 +127,7 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                                                     return Icon(
                                                       Icons.image_not_supported,
                                                       size: 50,
-                                                      color: Colors.grey[400],
+                                                      color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
                                                     );
                                                   },
                                                 )
@@ -138,14 +142,14 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                                                         return Icon(
                                                           Icons.image_not_supported,
                                                           size: 50,
-                                                          color: Colors.grey[400],
+                                                          color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
                                                         );
                                                       },
                                                     )
                                                   : Icon(
                                                       Icons.add_photo_alternate,
                                                       size: 50,
-                                                      color: Colors.grey[400],
+                                                      color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
                                                     )
                                           : pickedImage != null
                                               ? Image.file(
@@ -157,7 +161,7 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                                                     return Icon(
                                                       Icons.image_not_supported,
                                                       size: 50,
-                                                      color: Colors.grey[400],
+                                                      color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
                                                     );
                                                   },
                                                 )
@@ -172,14 +176,14 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                                                         return Icon(
                                                           Icons.image_not_supported,
                                                           size: 50,
-                                                          color: Colors.grey[400],
+                                                          color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
                                                         );
                                                       },
                                                     )
                                                   : Icon(
                                                       Icons.add_photo_alternate,
                                                       size: 50,
-                                                      color: Colors.grey[400],
+                                                      color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
                                                     ),
                                     ),
                             ),
@@ -225,7 +229,7 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                                     color: primaryColor,
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: Colors.white,
+                                      color: isDarkMode ? Colors.grey[800]! : Colors.white,
                                       width: 2,
                                     ),
                                   ),
@@ -243,11 +247,12 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                       const SizedBox(height: 24),
                       
                       // Item name field
-                      const Text(
+                      Text(
                         'Item Name',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -255,10 +260,21 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                         controller: nameController,
                         decoration: InputDecoration(
                           hintText: 'Enter item name',
+                          hintStyle: TextStyle(
+                            color: isDarkMode ? Colors.grey[400] : Colors.grey[500],
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          prefixIcon: const Icon(Icons.fastfood),
+                          prefixIcon: Icon(
+                            Icons.fastfood,
+                            color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                          filled: true,
+                          fillColor: isDarkMode ? theme.inputDecorationTheme.fillColor : Colors.white,
+                        ),
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurface,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -270,11 +286,12 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                       const SizedBox(height: 16),
                       
                       // Description field
-                      const Text(
+                      Text(
                         'Description',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -282,21 +299,33 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                         controller: descriptionController,
                         decoration: InputDecoration(
                           hintText: 'Enter item description',
+                          hintStyle: TextStyle(
+                            color: isDarkMode ? Colors.grey[400] : Colors.grey[500],
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          prefixIcon: const Icon(Icons.description),
+                          prefixIcon: Icon(
+                            Icons.description,
+                            color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                          filled: true,
+                          fillColor: isDarkMode ? theme.inputDecorationTheme.fillColor : Colors.white,
+                        ),
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurface,
                         ),
                         maxLines: 3,
                       ),
                       const SizedBox(height: 16),
                       
                       // Price field
-                      const Text(
+                      Text(
                         'Price',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -304,10 +333,21 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                         controller: priceController,
                         decoration: InputDecoration(
                           hintText: 'Enter price',
+                          hintStyle: TextStyle(
+                            color: isDarkMode ? Colors.grey[400] : Colors.grey[500],
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          prefixIcon: const Icon(Icons.currency_rupee),
+                          prefixIcon: Icon(
+                            Icons.currency_rupee,
+                            color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                          filled: true,
+                          fillColor: isDarkMode ? theme.inputDecorationTheme.fillColor : Colors.white,
+                        ),
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurface,
                         ),
                         keyboardType: TextInputType.number,
                         validator: (value) {
@@ -326,11 +366,12 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                       
                       // Availability switch
                       SwitchListTile(
-                        title: const Text(
+                        title: Text(
                           'Available Today',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
                         value: availableToday,
@@ -505,6 +546,8 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 900;
     final isMediumScreen = size.width > 600 && size.width <= 900;
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
 
     // Determine grid columns based on screen size
     int crossAxisCount = 2; // Default for small screens
@@ -567,226 +610,269 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
     return Scaffold(
       body: Column(
         children: [
-          // Search and filter bar - Responsive layout
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: isLargeScreen
-                ? Row(
-                    children: [
-                      // Search bar
-                      Expanded(
-                        flex: 3,
-                        child: TextField(
-                          controller: _searchController,
-                          decoration: InputDecoration(
-                            hintText: 'Search menu items...',
-                            prefixIcon: const Icon(Icons.search),
-                            suffixIcon: _searchQuery.isNotEmpty
-                                ? IconButton(
-                                    icon: const Icon(Icons.clear),
-                                    onPressed: () {
-                                      setState(() {
-                                        _searchController.clear();
-                                        _searchQuery = '';
-                                      });
-                                    },
-                                  )
-                                : null,
-                            filled: true,
-                            fillColor: Colors.grey[100],
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              _searchQuery = value;
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      
-                      // Filter switch
-                      Expanded(
-                        flex: 2,
-                        child: SwitchListTile(
-                          title: const Text(
-                            'Show only available items',
-                            style: TextStyle(fontSize: 14),
-                          ),
-                          value: _showOnlyAvailable,
-                          activeColor: primaryColor,
-                          contentPadding: EdgeInsets.zero,
-                          dense: true,
-                          onChanged: (value) {
-                            setState(() {
-                              _showOnlyAvailable = value;
-                            });
-                          },
-                        ),
-                      ),
-                      
-                      const SizedBox(width: 16),
-                      
-                      // Refresh button
-                      TextButton.icon(
-                        onPressed: () => itemProvider.loadItems(onlyAvailable: false),
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Refresh'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: primaryColor,
-                        ),
-                      ),
-                    ],
-                  )
-                : Column(
-                    children: [
-                      // Search bar
-                      TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: 'Search menu items...',
-                          prefixIcon: const Icon(Icons.search),
-                          suffixIcon: _searchQuery.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear),
-                                  onPressed: () {
-                                    setState(() {
-                                      _searchController.clear();
-                                      _searchQuery = '';
-                                    });
-                                  },
-                                )
-                              : null,
-                          filled: true,
-                          fillColor: Colors.grey[100],
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            _searchQuery = value;
-                          });
-                        },
-                      ),
-                      
-                      // Filter switch
-                      SwitchListTile(
-                        title: const Text(
-                          'Show only available items',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                        value: _showOnlyAvailable,
-                        activeColor: primaryColor,
-                        contentPadding: EdgeInsets.zero,
-                        dense: true,
-                        onChanged: (value) {
-                          setState(() {
-                            _showOnlyAvailable = value;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-          ),
-          
-          // Items count
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                Text(
-                  'Showing ${filteredItems.length} items',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[700],
-                  ),
-                ),
-                const Spacer(),
-                if (!isLargeScreen)
-                  TextButton.icon(
-                    onPressed: () => itemProvider.loadItems(onlyAvailable: false),
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Refresh'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: primaryColor,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          
-          // Items grid - Responsive layout
           Expanded(
-            child: filteredItems.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.no_food,
-                          size: 80,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          _searchQuery.isNotEmpty
-                              ? 'No items match your search'
-                              : _showOnlyAvailable
-                                  ? 'No available items'
-                                  : 'No items available',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () => _showAddEditItemDialog(context),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
-                            foregroundColor: Colors.black87,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                          ),
-                          child: const Text('Add New Item'),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Search and filter bar - Responsive layout
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDarkMode ? theme.cardTheme.color : Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(isDarkMode ? 0.2 : 0.05),
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                  )
-                : GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      childAspectRatio: isLargeScreen ? 0.85 : 0.75, // Adjusted for better proportions
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                    ),
-                    itemCount: filteredItems.length,
-                    itemBuilder: (context, index) {
-                      final item = filteredItems[index];
-                      return _buildItemCard(context, item, primaryColor);
-                    },
+                    child: isLargeScreen
+                        ? Row(
+                            children: [
+                              // Search bar
+                              Expanded(
+                                flex: 3,
+                                child: TextField(
+                                  controller: _searchController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Search menu items...',
+                                    hintStyle: TextStyle(
+                                      color: isDarkMode ? Colors.grey[400] : Colors.grey[500],
+                                    ),
+                                    prefixIcon: Icon(
+                                      Icons.search,
+                                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                                    ),
+                                    suffixIcon: _searchQuery.isNotEmpty
+                                        ? IconButton(
+                                            icon: Icon(
+                                              Icons.clear,
+                                              color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                _searchController.clear();
+                                                _searchQuery = '';
+                                              });
+                                            },
+                                          )
+                                        : null,
+                                    filled: true,
+                                    fillColor: isDarkMode ? theme.inputDecorationTheme.fillColor : Colors.grey[100],
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                                  ),
+                                  style: TextStyle(
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _searchQuery = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              
+                              // Filter switch
+                              Expanded(
+                                flex: 2,
+                                child: SwitchListTile(
+                                  title: Text(
+                                    'Show only available items',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  value: _showOnlyAvailable,
+                                  activeColor: primaryColor,
+                                  contentPadding: EdgeInsets.zero,
+                                  dense: true,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _showOnlyAvailable = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                              
+                              const SizedBox(width: 16),
+                              
+                              // Refresh button
+                              TextButton.icon(
+                                onPressed: () => itemProvider.loadItems(onlyAvailable: false),
+                                icon: const Icon(Icons.refresh),
+                                label: const Text('Refresh'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: primaryColor,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            children: [
+                              // Search bar
+                              TextField(
+                                controller: _searchController,
+                                decoration: InputDecoration(
+                                  hintText: 'Search menu items...',
+                                  hintStyle: TextStyle(
+                                    color: isDarkMode ? Colors.grey[400] : Colors.grey[500],
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.search,
+                                    color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                                  ),
+                                  suffixIcon: _searchQuery.isNotEmpty
+                                      ? IconButton(
+                                          icon: Icon(
+                                            Icons.clear,
+                                            color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              _searchController.clear();
+                                              _searchQuery = '';
+                                            });
+                                          },
+                                        )
+                                      : null,
+                                  filled: true,
+                                  fillColor: isDarkMode ? theme.inputDecorationTheme.fillColor : Colors.grey[100],
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                                ),
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _searchQuery = value;
+                                  });
+                                },
+                              ),
+                              
+                              // Filter switch
+                              SwitchListTile(
+                                title: Text(
+                                  'Show only available items',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                ),
+                                value: _showOnlyAvailable,
+                                activeColor: primaryColor,
+                                contentPadding: EdgeInsets.zero,
+                                dense: true,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _showOnlyAvailable = value;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
                   ),
+                  
+                  // Items count
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Showing ${filteredItems.length} items',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: isDarkMode ? Colors.grey[400] : Colors.grey[700],
+                          ),
+                        ),
+                        const Spacer(),
+                        if (!isLargeScreen)
+                          TextButton.icon(
+                            onPressed: () => itemProvider.loadItems(onlyAvailable: false),
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Refresh'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: primaryColor,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Items grid - Responsive layout
+                  filteredItems.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.no_food,
+                                  size: 80,
+                                  color: isDarkMode ? Colors.grey[700] : Colors.grey[400],
+                                ),
+                                const SizedBox(height: 24),
+                                Text(
+                                  _searchQuery.isNotEmpty
+                                      ? 'No items match your search'
+                                      : _showOnlyAvailable
+                                          ? 'No available items'
+                                          : 'No items available',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed: () => _showAddEditItemDialog(context),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: primaryColor,
+                                    foregroundColor: Colors.black87,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                  child: const Text('Add New Item'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: crossAxisCount,
+                              childAspectRatio: isLargeScreen ? 0.85 : 0.75, // Adjusted for better proportions
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                            ),
+                            itemCount: filteredItems.length,
+                            itemBuilder: (context, index) {
+                              final item = filteredItems[index];
+                              return _buildItemCard(context, item, primaryColor, isDarkMode, theme);
+                            },
+                          ),
+                        ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -799,12 +885,13 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
     );
   }
 
-  Widget _buildItemCard(BuildContext context, ItemModel item, Color primaryColor) {
+  Widget _buildItemCard(BuildContext context, ItemModel item, Color primaryColor, bool isDarkMode, ThemeData theme) {
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 900;
     
     return Card(
       elevation: 4,
+      color: theme.cardTheme.color,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -826,21 +913,21 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              color: Colors.grey[200],
-                              child: const Icon(
+                              color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
+                              child: Icon(
                                 Icons.fastfood,
                                 size: 50,
-                                color: Colors.grey,
+                                color: isDarkMode ? Colors.grey[600] : Colors.grey,
                               ),
                             );
                           },
                         )
                       : Container(
-                          color: Colors.grey[200],
-                          child: const Icon(
+                          color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
+                          child: Icon(
                             Icons.fastfood,
                             size: 50,
-                            color: Colors.grey,
+                            color: isDarkMode ? Colors.grey[600] : Colors.grey,
                           ),
                         ),
                 ),
@@ -885,9 +972,10 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                       children: [
                         Text(
                           item.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
+                            color: theme.colorScheme.onSurface,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -897,7 +985,7 @@ class _ManageItemsScreenState extends State<ManageItemsScreen> {
                           Text(
                             item.description!,
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                               fontSize: 12,
                             ),
                             maxLines: 2,

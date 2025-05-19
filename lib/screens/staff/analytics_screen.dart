@@ -242,6 +242,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     const primaryColor = Color(0xFFFEC62B); // Match user home screen color
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 900;
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
     
     if (_isLoading) {
       return const Center(
@@ -287,13 +289,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         onRefresh: _loadData,
         color: primaryColor,
         child: isLargeScreen
-            ? _buildLargeScreenLayout(primaryColor)
-            : _buildSmallScreenLayout(primaryColor),
+            ? _buildLargeScreenLayout(primaryColor, isDarkMode, theme)
+            : _buildSmallScreenLayout(primaryColor, isDarkMode, theme),
       ),
     );
   }
   
-  Widget _buildLargeScreenLayout(Color primaryColor) {
+  Widget _buildLargeScreenLayout(Color primaryColor, bool isDarkMode, ThemeData theme) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -303,14 +305,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Analytics Dashboard',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
-              _buildDateRangeSelector(primaryColor),
+              _buildDateRangeSelector(primaryColor, isDarkMode, theme),
             ],
           ),
           const SizedBox(height: 24),
@@ -318,11 +321,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           // Summary cards
           Row(
             children: [
-              Expanded(child: _buildSummaryCard('Total Revenue', '₹${_totalRevenue.toStringAsFixed(2)}', Icons.attach_money, primaryColor)),
+              Expanded(child: _buildSummaryCard('Total Revenue', '₹${_totalRevenue.toStringAsFixed(2)}', Icons.attach_money, primaryColor, isDarkMode, theme)),
               const SizedBox(width: 16),
-              Expanded(child: _buildSummaryCard('Total Orders', _totalOrders.toString(), Icons.shopping_bag, primaryColor)),
+              Expanded(child: _buildSummaryCard('Total Orders', _totalOrders.toString(), Icons.shopping_bag, primaryColor, isDarkMode, theme)),
               const SizedBox(width: 16),
-              Expanded(child: _buildSummaryCard('Average Order', '₹${_averageOrderValue.toStringAsFixed(2)}', Icons.trending_up, primaryColor)),
+              Expanded(child: _buildSummaryCard('Average Order', '₹${_averageOrderValue.toStringAsFixed(2)}', Icons.trending_up, primaryColor, isDarkMode, theme)),
             ],
           ),
           const SizedBox(height: 24),
@@ -336,6 +339,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 flex: 3,
                 child: Card(
                   elevation: 4,
+                  color: theme.cardTheme.color,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -344,25 +348,26 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Revenue Trend',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           _dateRangeText(),
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                             fontSize: 14,
                           ),
                         ),
                         const SizedBox(height: 24),
                         SizedBox(
                           height: 300,
-                          child: _buildRevenueChart(primaryColor),
+                          child: _buildRevenueChart(primaryColor, isDarkMode, theme),
                         ),
                       ],
                     ),
@@ -377,6 +382,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 flex: 2,
                 child: Card(
                   elevation: 4,
+                  color: theme.cardTheme.color,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -385,18 +391,19 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Top Selling Items',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 24),
                         ..._topSellingItems.asMap().entries.map((entry) {
                           final index = entry.key;
                           final item = entry.value;
-                          return _buildTopSellingItem(index, item.key, item.value, primaryColor);
+                          return _buildTopSellingItem(index, item.key, item.value, primaryColor, isDarkMode, theme);
                         }),
                         if (_topSellingItems.isEmpty)
                           Center(
@@ -407,13 +414,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                                   Icon(
                                     Icons.bar_chart,
                                     size: 64,
-                                    color: Colors.grey[400],
+                                    color: isDarkMode ? Colors.grey[700] : Colors.grey[400],
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
                                     'No sales data available',
                                     style: TextStyle(
-                                      color: Colors.grey[600],
+                                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                                       fontSize: 16,
                                     ),
                                   ),
@@ -433,6 +440,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           // Additional analytics section
           Card(
             elevation: 4,
+            color: theme.cardTheme.color,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -441,17 +449,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Sales by Item Category',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
                     height: 300,
-                    child: _buildCategoryChart(primaryColor),
+                    child: _buildCategoryChart(primaryColor, isDarkMode, theme),
                   ),
                 ],
               ),
@@ -462,37 +471,39 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
   
-  Widget _buildSmallScreenLayout(Color primaryColor) {
+  Widget _buildSmallScreenLayout(Color primaryColor, bool isDarkMode, ThemeData theme) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
-          const Text(
+          Text(
             'Analytics Dashboard',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 16),
           
           // Date range selector
-          _buildDateRangeSelector(primaryColor),
+          _buildDateRangeSelector(primaryColor, isDarkMode, theme),
           const SizedBox(height: 16),
           
           // Summary cards - stacked for mobile
-          _buildSummaryCard('Total Revenue', '₹${_totalRevenue.toStringAsFixed(2)}', Icons.attach_money, primaryColor),
+          _buildSummaryCard('Total Revenue', '₹${_totalRevenue.toStringAsFixed(2)}', Icons.attach_money, primaryColor, isDarkMode, theme),
           const SizedBox(height: 12),
-          _buildSummaryCard('Total Orders', _totalOrders.toString(), Icons.shopping_bag, primaryColor),
+          _buildSummaryCard('Total Orders', _totalOrders.toString(), Icons.shopping_bag, primaryColor, isDarkMode, theme),
           const SizedBox(height: 12),
-          _buildSummaryCard('Average Order', '₹${_averageOrderValue.toStringAsFixed(2)}', Icons.trending_up, primaryColor),
+          _buildSummaryCard('Average Order', '₹${_averageOrderValue.toStringAsFixed(2)}', Icons.trending_up, primaryColor, isDarkMode, theme),
           const SizedBox(height: 24),
           
           // Revenue chart
           Card(
             elevation: 4,
+            color: theme.cardTheme.color,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -501,25 +512,26 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Revenue Trend',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     _dateRangeText(),
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                       fontSize: 12,
                     ),
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
                     height: 200,
-                    child: _buildRevenueChart(primaryColor),
+                    child: _buildRevenueChart(primaryColor, isDarkMode, theme),
                   ),
                 ],
               ),
@@ -530,6 +542,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           // Top selling items
           Card(
             elevation: 4,
+            color: theme.cardTheme.color,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -538,18 +551,19 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Top Selling Items',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 16),
                   ..._topSellingItems.asMap().entries.map((entry) {
                     final index = entry.key;
                     final item = entry.value;
-                    return _buildTopSellingItem(index, item.key, item.value, primaryColor);
+                    return _buildTopSellingItem(index, item.key, item.value, primaryColor, isDarkMode, theme);
                   }),
                   if (_topSellingItems.isEmpty)
                     Center(
@@ -560,13 +574,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             Icon(
                               Icons.bar_chart,
                               size: 48,
-                              color: Colors.grey[400],
+                              color: isDarkMode ? Colors.grey[700] : Colors.grey[400],
                             ),
                             const SizedBox(height: 12),
                             Text(
                               'No sales data available',
                               style: TextStyle(
-                                color: Colors.grey[600],
+                                color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                                 fontSize: 14,
                               ),
                             ),
@@ -583,6 +597,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           // Category chart
           Card(
             elevation: 4,
+            color: theme.cardTheme.color,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -591,17 +606,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Sales by Item Category',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
                     height: 200,
-                    child: _buildCategoryChart(primaryColor),
+                    child: _buildCategoryChart(primaryColor, isDarkMode, theme),
                   ),
                 ],
               ),
@@ -612,9 +628,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
   
-  Widget _buildSummaryCard(String title, String value, IconData icon, Color primaryColor) {
+  Widget _buildSummaryCard(String title, String value, IconData icon, Color primaryColor, bool isDarkMode, ThemeData theme) {
     return Card(
       elevation: 4,
+      color: theme.cardTheme.color,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -642,16 +659,17 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   Text(
                     title,
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                       fontSize: 14,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     value,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 20,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                 ],
@@ -663,10 +681,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
   
-  Widget _buildDateRangeSelector(Color primaryColor) {
+  Widget _buildDateRangeSelector(Color primaryColor, bool isDarkMode, ThemeData theme) {
     return Card(
       elevation: 0,
-      color: Colors.grey[100],
+      color: isDarkMode ? theme.cardTheme.color?.withOpacity(0.3) : Colors.grey[100],
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -675,16 +693,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildDateRangeButton('Week', 'week', primaryColor),
-            _buildDateRangeButton('Month', 'month', primaryColor),
-            _buildDateRangeButton('Year', 'year', primaryColor),
+            _buildDateRangeButton('Week', 'week', primaryColor, isDarkMode, theme),
+            _buildDateRangeButton('Month', 'month', primaryColor, isDarkMode, theme),
+            _buildDateRangeButton('Year', 'year', primaryColor, isDarkMode, theme),
           ],
         ),
       ),
     );
   }
   
-  Widget _buildDateRangeButton(String label, String value, Color primaryColor) {
+  Widget _buildDateRangeButton(String label, String value, Color primaryColor, bool isDarkMode, ThemeData theme) {
     final isSelected = _dateRange == value;
     
     return InkWell(
@@ -704,7 +722,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.black87 : Colors.grey[700],
+            color: isSelected 
+                ? Colors.black87 
+                : isDarkMode ? theme.colorScheme.onSurface : Colors.grey[700],
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -730,13 +750,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     }
   }
   
-  Widget _buildRevenueChart(Color primaryColor) {
+  Widget _buildRevenueChart(Color primaryColor, bool isDarkMode, ThemeData theme) {
     if (_revenueData.isEmpty) {
       return Center(
         child: Text(
           'No revenue data available',
           style: TextStyle(
-            color: Colors.grey[600],
+            color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
             fontSize: 16,
           ),
         ),
@@ -751,13 +771,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           horizontalInterval: _maxRevenue / 5,
           getDrawingHorizontalLine: (value) {
             return FlLine(
-              color: Colors.grey[300],
+              color: isDarkMode ? Colors.grey[800] : Colors.grey[300],
               strokeWidth: 1,
             );
           },
           getDrawingVerticalLine: (value) {
             return FlLine(
-              color: Colors.grey[300],
+              color: isDarkMode ? Colors.grey[800] : Colors.grey[300],
               strokeWidth: 1,
             );
           },
@@ -796,9 +816,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
                       label,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
+                        color: isDarkMode ? theme.colorScheme.onSurface : Colors.black87,
                       ),
                     ),
                   );
@@ -815,9 +836,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               getTitlesWidget: (value, meta) {
                 return Text(
                   '₹${value.toInt()}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
+                    color: isDarkMode ? theme.colorScheme.onSurface : Colors.black87,
                   ),
                 );
               },
@@ -826,7 +848,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         ),
         borderData: FlBorderData(
           show: true,
-          border: Border.all(color: Colors.grey[300]!),
+          border: Border.all(
+            color: isDarkMode ? Colors.grey[800]! : Colors.grey[300]!,
+          ),
         ),
         minX: 0,
         maxX: _revenueData.length - 1.0,
@@ -850,7 +874,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
   
-  Widget _buildTopSellingItem(int index, String name, int quantity, Color primaryColor) {
+  Widget _buildTopSellingItem(int index, String name, int quantity, Color primaryColor, bool isDarkMode, ThemeData theme) {
     final maxQuantity = _topSellingItems.isNotEmpty 
         ? _topSellingItems.map((e) => e.value).reduce((a, b) => a > b ? a : b) 
         : 0;
@@ -866,15 +890,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             children: [
               Text(
                 '${index + 1}. $name',
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
               const Spacer(),
               Text(
                 '$quantity sold',
                 style: TextStyle(
-                  color: Colors.grey[600],
+                  color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                   fontSize: 14,
                 ),
               ),
@@ -883,7 +908,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: progress.toDouble(),
-            backgroundColor: Colors.grey[200],
+            backgroundColor: isDarkMode ? Colors.grey[800] : Colors.grey[200],
             valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
             minHeight: 8,
             borderRadius: BorderRadius.circular(4),
@@ -893,14 +918,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
   
-  // Replace the _buildCategoryChart method with this implementation that infers categories from item names
-  Widget _buildCategoryChart(Color primaryColor) {
+  Widget _buildCategoryChart(Color primaryColor, bool isDarkMode, ThemeData theme) {
     if (_orders.isEmpty || _items.isEmpty) {
       return Center(
         child: Text(
           'No sales data available',
           style: TextStyle(
-            color: Colors.grey[600],
+            color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
             fontSize: 16,
           ),
         ),
@@ -1034,7 +1058,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 const SizedBox(width: 4),
                 Text(
                   '$category: ₹${revenue.toStringAsFixed(0)}',
-                  style: const TextStyle(fontSize: 12),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.colorScheme.onSurface,
+                  ),
                 ),
               ],
             );
