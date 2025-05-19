@@ -7,7 +7,6 @@ import 'package:campus_care/providers/cart_provider.dart';
 import 'package:campus_care/providers/item_provider.dart';
 import 'package:campus_care/providers/order_provider.dart';
 import 'package:campus_care/screens/splash_screen.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

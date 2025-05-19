@@ -598,38 +598,25 @@ class _StaffDashboardState extends State<StaffDashboard>
           ),
           const SizedBox(height: 16),
 
-          // Orders grid
+          // Orders grid - using a fixed height for each item
           Expanded(
             child: GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 1.8, // Adjusted for better fit
+                childAspectRatio: 1.2, // More square-like ratio
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
               ),
               itemCount: _pendingOrders.length,
               itemBuilder: (context, index) {
                 final order = _pendingOrders[index];
-                // Add ClipRRect to ensure no overflow
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: OrderTile(
-                      order: order,
-                      isStaff: true,
-                      onMarkCompleted: () => _markOrderAsCompleted(order.id),
-                    ),
+                // Fixed height container for each order
+                return SizedBox(
+                  height: 400, // Fixed height
+                  child: OrderTile(
+                    order: order,
+                    isStaff: true,
+                    onMarkCompleted: () => _markOrderAsCompleted(order.id),
                   ),
                 );
               },
@@ -646,27 +633,10 @@ class _StaffDashboardState extends State<StaffDashboard>
       itemCount: _pendingOrders.length,
       itemBuilder: (context, index) {
         final order = _pendingOrders[index];
-        // Add ClipRRect to ensure no overflow
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: OrderTile(
-              order: order,
-              isStaff: true,
-              onMarkCompleted: () => _markOrderAsCompleted(order.id),
-            ),
-          ),
+        return OrderTile(
+          order: order,
+          isStaff: true,
+          onMarkCompleted: () => _markOrderAsCompleted(order.id),
         );
       },
     );
