@@ -7,6 +7,13 @@ Here is a **Flutter mobile app** called **Campus Care**, using **Supabase** as t
 TO CHECK GOOGLE LOGIN IN DEV
 flutter run -d chrome --web-port=3000
 
+TEST ON MOBILE WEB WITHOUT HOSTING
+flutter build web
+npm install -g http-server
+cd build/web
+http-server -p 8080 --cors
+
+
 ---
 
 ### 📁 Required Features and Roles

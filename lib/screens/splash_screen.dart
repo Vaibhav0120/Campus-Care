@@ -131,6 +131,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isDesktop = kIsWeb || size.width > 900;
+    final isSmallScreen = size.width <= 360; // Added for very small screens
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
     const primaryColor = Color(0xFFFEC62B);
@@ -262,22 +263,37 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           ],
                         ),
                         
-                        // Food icons at the bottom
+                        // Food icons at the bottom - Fixed for small screens
                         Expanded(
                           child: Align(
                             alignment: Alignment.bottomCenter,
                             child: Padding(
                               padding: EdgeInsets.only(bottom: isDesktop ? 30 : 20),
-                              child: Wrap(
-                                spacing: isDesktop ? 16 : 8,
-                                children: [
-                                  _buildFoodIcon(Icons.local_pizza, theme, isDarkMode),
-                                  _buildFoodIcon(Icons.coffee, theme, isDarkMode),
-                                  _buildFoodIcon(Icons.fastfood, theme, isDarkMode),
-                                  _buildFoodIcon(Icons.local_dining, theme, isDarkMode),
-                                  _buildFoodIcon(Icons.icecream, theme, isDarkMode),
-                                ],
-                              ),
+                              child: isSmallScreen 
+                                  // For small screens, use a grid layout instead of a row
+                                  ? Wrap(
+                                      alignment: WrapAlignment.center,
+                                      spacing: 12,
+                                      runSpacing: 12,
+                                      children: [
+                                        _buildFoodIcon(Icons.local_pizza, theme, isDarkMode),
+                                        _buildFoodIcon(Icons.coffee, theme, isDarkMode),
+                                        _buildFoodIcon(Icons.fastfood, theme, isDarkMode),
+                                        _buildFoodIcon(Icons.local_dining, theme, isDarkMode),
+                                        _buildFoodIcon(Icons.icecream, theme, isDarkMode),
+                                      ],
+                                    )
+                                  // For larger screens, keep the original layout
+                                  : Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        _buildFoodIcon(Icons.local_pizza, theme, isDarkMode),
+                                        _buildFoodIcon(Icons.coffee, theme, isDarkMode),
+                                        _buildFoodIcon(Icons.fastfood, theme, isDarkMode),
+                                        _buildFoodIcon(Icons.local_dining, theme, isDarkMode),
+                                        _buildFoodIcon(Icons.icecream, theme, isDarkMode),
+                                      ],
+                                    ),
                             ),
                           ),
                         ),
