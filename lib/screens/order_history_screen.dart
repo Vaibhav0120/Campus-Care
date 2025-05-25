@@ -193,8 +193,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
   }
   
   void _showCancelDialog(OrderModel order) {
-    final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
+    Theme.of(context);
     
     showDialog(
       context: context,
@@ -216,6 +215,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
               final success = await orderProvider.cancelOrder(order.id);
               
               if (mounted) {
+                // ignore: use_build_context_synchronously
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
