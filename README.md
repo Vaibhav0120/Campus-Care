@@ -1,7 +1,7 @@
 # 🧠 Campus Care
 
 <div align="center">
-  <img src="assets/app_icon.png" alt="Campus Care Logo" width="120" height="120">
+  <img src="https://xdchodqtxmeslemstndf.supabase.co/storage/v1/object/public/project-data//icon.png" alt="Campus Care Logo" width="120" height="120">
   
   **A Flutter App – Student ↔ Cafeteria Platform**
 
@@ -82,7 +82,7 @@ SUPABASE_URL=your_supabase_url              # Replace with your Supabase project
 SUPABASE_ANON_KEY=your_anon_key             # Replace with your Supabase anon/public API key
 RAZORPAY_KEY_ID=your_key_id                 # Replace with your Razorpay key ID
 RAZORPAY_KEY_SECRET=your_key_secret         # Replace with your Razorpay key secret
-
+```
 
 ### ▶️ Run the App
 
