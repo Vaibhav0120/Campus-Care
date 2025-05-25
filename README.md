@@ -1,6 +1,6 @@
 <div align="center">
   
-# 🧠 Campus Care
+# Campus Care 😋
 </div>
 
 <div align="center">
