@@ -1,124 +1,104 @@
-## 🧠 a Flutter App – **Campus Care** (Student ↔ Cafeteria Platform)
+# 🧠 Campus Care
 
-Here is a **Flutter mobile app** called **Campus Care**, using **Supabase** as the backend. The project has **role-based access (Student / Cafeteria Staff)**, real-time database operations, cart & order features, and payment using **Razorpay UPI**. Supabase credentials are to be managed using a `.env` file.
+<div align="center">
+  <img src="assets/app_icon.png" alt="Campus Care Logo" width="120" height="120">
+  
+  **A Flutter App – Student ↔ Cafeteria Platform**
 
-[Watch Live](https://campus-care-seven.vercel.app/)
+  [![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
+  [![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
+  [![Razorpay](https://img.shields.io/badge/Razorpay-02042B?style=for-the-badge&logo=razorpay&logoColor=white)](https://razorpay.com)
+  [🚀 Watch Live Demo](https://campus-care-seven.vercel.app/)
+</div>
 
-TO CHECK GOOGLE LOGIN IN DEV
+---
+
+## 📖 Overview
+
+**Campus Care** is a Flutter application that simplifies cafeteria operations by allowing students to order and pay digitally, while enabling staff to manage orders and inventory. It’s built using Supabase (PostgreSQL, Auth, RLS) and Razorpay for UPI payments.
+
+---
+
+## ✨ Key Features
+
+- 🔐 **Role-Based Login** (Student / Staff)
+- 🛒 **Smart Cart System** with constraints and RLS
+- 💳 **UPI Payment via Razorpay**
+- 📦 **Order Tracking** with order status and history
+- 👨‍🍳 **Staff Portal** to manage orders and menu
+- ☁️ **Supabase Backend** with secure policies
+
+---
+
+## 📸 Screenshots
+
+- 📱 Android UI:
+  - 👨‍🍳 [Staff](Screenshots/Android%20UI/Staff)
+  - 🧑‍🎓 [Student](Screenshots/Android%20UI/Student)
+
+- 🖥️ PC Web UI:
+  - 👨‍🍳 [Staff](Screenshots/PC%20Web%20UI/Staff)
+  - 🧑‍🎓 [Student](Screenshots/PC%20Web%20UI/Student)
+
+---
+
+## 📦 Supabase SQL Setup Scripts
+
+Easily copy and paste the SQL scripts below into your [Supabase SQL Editor](https://app.supabase.com/project/_/sql) to set up your tables and policies:
+
+- 🛒 [Cart Table](Supabase/Cart%20Table.txt)
+- 🍽️ [Items Table](Supabase/Items%20Table.txt)
+- 📦 [Orders Table](Supabase/Orders%20Table.txt)
+- 🔐 [Users Table](Supabase/Users%20Table.txt)
+- ☁️ [Storage + Auth](Supabase/Storage%20+%20Auth.txt)
+
+---
+
+## 🔒 Supabase RLS Summary
+
+| Table   | View | Insert | Update | Delete |
+|---------|------|--------|--------|--------|
+| `users` | Own / Staff | ❌ | ❌ | ❌ |
+| `items` | All | Staff only | Staff only | Staff only |
+| `cart`  | Own | Own | Own | Own |
+| `orders`| Own / Staff | Own | Staff only | ❌ |
+
+---
+
+## 📦 Setup
+
+### 🧰 Prerequisites
+
+- Flutter SDK ≥ 3.0.0
+- Supabase Account (with RLS enabled)
+
+### ⚙️ .env Example
+
+Create a `.env` file in the root of your project and add the following environment variables:
+
+```env
+SUPABASE_URL=your_supabase_url              # Replace with your Supabase project URL
+SUPABASE_ANON_KEY=your_anon_key             # Replace with your Supabase anon/public API key
+RAZORPAY_KEY_ID=your_key_id                 # Replace with your Razorpay key ID
+RAZORPAY_KEY_SECRET=your_key_secret         # Replace with your Razorpay key secret
+
+
+### ▶️ Run the App
+
+```bash
+flutter pub get
+flutter run
+```
+
+### 🌐 Web Testing (with Google Login)
+
+```bash
 flutter run -d chrome --web-port=3000
-
-TEST ON MOBILE WEB WITHOUT HOSTING
-flutter build web
-npm install -g http-server
-cd build/web
-http-server -p 8080 --cors
-
-
----
-
-### 📁 Required Features and Roles
-
-#### 🔐 Authentication (Supabase Auth)
-
-* On app launch, the **Home Page** is shown with a **“Login”** button.
-* From the **Login Page**, users can go to **Sign Up**.
-* On **sign up**, the user is auto-marked as a `customer` (`role = "student"`) in Supabase.
-* **Cafeteria staff accounts are created manually in Supabase** with role = `staff`.
-
----
-
-### 👤 Role-Based Navigation After Login
-
-#### 🧑‍🎓 If the user is a **Student**:
-
-* Redirect to the **Home Page**
-* Features:
-
-  * Browse available food/items
-  * Add to cart
-  * View cart and total
-  * Place order via **Razorpay UPI**
-  * View previous orders
-  * Real-time status of placed orders (e.g., Pending → Completed)
-
-#### 👨‍🍳 If the user is a **Cafeteria Staff**:
-
-* Redirect to a **Staff Dashboard**
-* Features:
-
-  * **View list of uncompleted orders**
-  * Mark orders as **Completed**
-  * Navigate to **Manage Items Page** to:
-
-    * Edit item name/price
-    * Toggle “Available Today” status (true/false)
-    * Add new items (optional future scope)
-
----
-
-### 🗃️ Supabase Tables Design
-
-#### 1. `users`
-
-| id   | email | role                 |
-| ---- | ----- | -------------------- |
-| UUID | text  | "student" or "staff" |
-
-#### 2. `items`
-
-| id   | name | description | price   | image\_url | available\_today |
-| ---- | ---- | ----------- | ------- | ---------- | ---------------- |
-| UUID | text | text        | numeric | text       | boolean          |
-
-#### 3. `orders`
-
-| id   | user\_id | items (jsonb)        | total\_price | status                  | created\_at |
-| ---- | -------- | -------------------- | ------------ | ----------------------- | ----------- |
-| UUID | UUID     | \[{ item\_id, qty }] | numeric      | "pending" / "completed" | timestamp   |
-
-#### 4. `cart`
-
-| user\_id | item\_id | quantity |
-| -------- | -------- | -------- |
-
----
-
-### 📱 UI Navigation Flow
-
-```
-App Start → Home Page
-               ↓
-         [ Login Button ]
-               ↓
-         Login Screen —→ [ Sign Up Button ]
-               ↓
-            On Login
-               ↓
-    ┌──────────────────────┬────────────────────┐
-    │  if role == student  │  if role == staff  │
-    └──────────────────────┴────────────────────┘
-           ↓                          ↓
-     HomeScreen                StaffDashboard
-           ↓                          ↓
-   View Items / Cart       View Orders / Manage Items
-           ↓                          ↓
-    Razorpay UPI Pay       Mark as Complete / Edit Item
 ```
 
 ---
 
-### 🔧 Tech Stack
-
-* **Flutter**
-* **Supabase (Auth + Postgres + Realtime)**
-* **Razorpay** for payment
-* **flutter\_dotenv** for `.env` management
-* **provider** or **flutter\_riverpod** for state management
-* **cached\_network\_image**, **fluttertoast**, etc.
-
----
-
-### 📦 Folder Structure
+## 🧠 Project Structure
 
 ```
 lib/
@@ -137,34 +117,39 @@ lib/
 │   └── order_service.dart
 ├── providers/
 │   ├── auth_provider.dart
+│   ├── order_provider.dart
 │   ├── cart_provider.dart
-│   └── item_provider.dart
+│   ├── cart_provider.dart
+│   └── theme_provider.dart
+├── theme/
+│   └── app_themes.dart
 ├── screens/
+│   ├── splash_screen.dart
 │   ├── home_screen.dart
-│   ├── login_screen.dart
-│   ├── signup_screen.dart
+│   ├── order_history_screen.dart
 │   ├── cart_screen.dart
 │   ├── place_order_screen.dart
+│   ├── auth/
+│   │   ├── login_screen.dart
+│   │   └── signup_screen.dart
 │   └── staff/
 │       ├── staff_dashboard.dart
+│       ├── analytics_screen.dart
+│       ├── staff_order_history_screen.dart
 │       └── manage_items_screen.dart
 ├── widgets/
+│   ├── recommendation_carousel.dart
 │   ├── item_card.dart
+│   ├── theme_toggle_button.dart
 │   ├── cart_tile.dart
 │   └── order_tile.dart
 └── utils/
     └── validators.dart
+
 ```
 
 ---
 
-### ✅ Logic Checklist
-
-* [ ] User signup → auto-create as student in `users`
-* [ ] Login → fetch user role → conditional navigation
-* [ ] Role-based UI (Customer vs Staff)
-* [ ] Cart management with provider
-* [ ] Razorpay UPI integration for checkout
-* [ ] Supabase real-time DB updates for orders
-* [ ] Staff-only order management + item editing
-
+<div align="center">
+  Made by Vaibhav Sharma
+</div>
