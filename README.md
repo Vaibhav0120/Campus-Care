@@ -1,4 +1,7 @@
+<div align="center">
+  
 # 🧠 Campus Care
+</div>
 
 <div align="center">
   <img src="https://xdchodqtxmeslemstndf.supabase.co/storage/v1/object/public/project-data//icon.png" alt="Campus Care Logo" width="120" height="120">
